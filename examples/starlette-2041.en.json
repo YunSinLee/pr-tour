@@ -1,0 +1,370 @@
+{
+  "url": "https://github.com/Kludex/starlette/pull/2041",
+  "head": "094f0809f03efd218c6d10ae92d076332c2c0926",
+  "base": "043c800210e4d694263d3fece6ff1f1d2e65a80a",
+  "date": "2026-09-12",
+  "title": "Starlette · WebSocket denial responses",
+  "overview": "Send a custom HTTP error before accepting a WebSocket. Follow the response, state changes and tests.",
+  "steps": [
+    {
+      "id": "contract",
+      "group": "Contract",
+      "file": "docs/websockets.md",
+      "title": "Reject with an HTTP response",
+      "heading": "A WebSocket request can fail before it opens.",
+      "why": "A rejected upgrade normally becomes HTTP 403. This PR lets an app choose a response such as 404 with a body, before accepting the WebSocket. Follow how that response reaches the test client.",
+      "notes": [
+        {
+          "start": 113,
+          "end": 125,
+          "title": "Public contract",
+          "text": "send_denial_response(response) requires a server extension. The documented unsupported case raises RuntimeError; it does not silently choose another response."
+        }
+      ],
+      "check": "Is the connection accepted before the denial response is sent?",
+      "next": "Start with the new WebSocket method."
+    },
+    {
+      "id": "entry",
+      "group": "Send",
+      "file": "starlette/websockets.py",
+      "title": "Enter the new method",
+      "heading": "Use the existing Response object.",
+      "why": "The application passes a Response to send_denial_response. When the scope advertises the extension, the method runs that response with this WebSocket’s receive and send callbacks.",
+      "notes": [
+        {
+          "start": 207,
+          "end": 213,
+          "title": "Check support, then delegate",
+          "text": "The scope describes the connection and supported extensions. The passed self.send is important: response messages will go through WebSocket state validation."
+        }
+      ],
+      "check": "Which method receives the messages emitted by Response?",
+      "next": "Open Response, then inspect how it labels outgoing messages."
+    },
+    {
+      "id": "serialize",
+      "group": "Send",
+      "file": "starlette/responses.py",
+      "title": "Create ASGI messages",
+      "heading": "The payload stays the same; the message names gain a prefix.",
+      "why": "ASGI passes dictionaries between an application and its server. Response emits a start message with status and headers, followed by a body message. For WebSocket scope, both names now start with websocket.",
+      "notes": [
+        {
+          "start": 150,
+          "end": 159,
+          "title": "Prefix both messages",
+          "text": "A WebSocket scope produces websocket.http.response.start and websocket.http.response.body. Ordinary HTTP scope keeps http.response.start and http.response.body."
+        }
+      ],
+      "check": "Why would prefixing only the start message be insufficient?",
+      "next": "Those messages return to WebSocket.send, where the connection changes state."
+    },
+    {
+      "id": "response-state",
+      "group": "Send",
+      "file": "starlette/websockets.py",
+      "title": "Enter the response state",
+      "heading": "A denial response is a third path from CONNECTING.",
+      "why": "Before this change, the app could accept or close a connection while CONNECTING. It can now start a denial response, entering RESPONSE instead of CONNECTED.",
+      "notes": [
+        {
+          "start": 13,
+          "end": 16,
+          "title": "New state",
+          "text": "RESPONSE separates an HTTP denial body from messages on an accepted WebSocket."
+        },
+        {
+          "start": 68,
+          "end": 86,
+          "title": "Validate and transition",
+          "text": "A response-start message is accepted only in CONNECTING. It sets application_state before forwarding the message to the server callback."
+        }
+      ],
+      "check": "Does starting a denial response mark the WebSocket as accepted?",
+      "next": "Next, follow the response body and the terminal state."
+    },
+    {
+      "id": "finish-body",
+      "group": "Send",
+      "file": "starlette/websockets.py",
+      "title": "Finish the response body",
+      "heading": "The last body message closes the application state.",
+      "why": "In RESPONSE, only websocket.http.response.body is valid. Chunks with more_body=True keep the state open; a final chunk, including one with no more_body key, moves it to DISCONNECTED.",
+      "notes": [
+        {
+          "start": 101,
+          "end": 112,
+          "title": "Body-only path",
+          "text": "The default of False matters. Response.__call__ sends one body without more_body, so the ordinary denial response finishes here. Another start message raises RuntimeError."
+        }
+      ],
+      "check": "What keeps a multi-chunk response open between chunks?",
+      "next": "Now switch to the test client that receives these messages."
+    },
+    {
+      "id": "test-transport",
+      "group": "Observe",
+      "file": "starlette/testclient.py",
+      "title": "Expose the rejected response",
+      "heading": "Tests inspect a response-shaped exception.",
+      "why": "The test transport advertises extension support. Its WebSocket session collects response-body chunks and raises WebSocketDenialResponse, which carries HTTP response data and is also a WebSocketDisconnect.",
+      "notes": [
+        {
+          "start": 302,
+          "end": 305,
+          "title": "Advertise support",
+          "text": "The in-process test scope includes websocket.http.response. This exercises the application without proving that any particular deployed server supports the extension."
+        },
+        {
+          "start": 174,
+          "end": 188,
+          "title": "Collect the response",
+          "text": "The loop reads until more_body is false or absent, then preserves the status, headers and joined body in the exception."
+        },
+        {
+          "start": 81,
+          "end": 88,
+          "title": "Exception contract",
+          "text": "The two base classes make HTTP response inspection and WebSocket-disconnect handling possible on the same object."
+        }
+      ],
+      "check": "Where are multiple body chunks joined, and what stops that loop?",
+      "next": "The tests below check these preserved values.",
+      "reference": {
+        "path": "starlette/testclient.py",
+        "start": 106,
+        "end": 120,
+        "label": "Reference · session entry",
+        "text": "Session entry sends websocket.connect and passes the first server message to _raise_on_close. This is why denial raises while entering the context manager."
+      }
+    },
+    {
+      "id": "assert-response",
+      "group": "Verify",
+      "file": "tests/test_websockets.py",
+      "title": "Assert status, headers and body",
+      "heading": "The tests check the values the caller receives.",
+      "why": "These tests run small ASGI applications through TestClient. They use the real Starlette response and WebSocket code with in-process transport, rather than a live network server.",
+      "notes": [
+        {
+          "start": 308,
+          "end": 321,
+          "title": "Single response",
+          "text": "The app returns status 404 and foo. The test catches WebSocketDenialResponse at websocket_connect and asserts both status and body."
+        },
+        {
+          "start": 336,
+          "end": 356,
+          "title": "Multiple chunks",
+          "text": "The first chunk says more_body=True; the second omits it. The caller must receive hardbody and the custom foo header."
+        }
+      ],
+      "check": "Which assertions would fail if the client kept only the last chunk?",
+      "next": "Finally, inspect unsupported servers and invalid message order."
+    },
+    {
+      "id": "reject-invalid",
+      "group": "Verify",
+      "file": "tests/test_websockets.py",
+      "title": "Check failure boundaries",
+      "heading": "Unsupported servers and duplicate starts are separate failures.",
+      "why": "One test removes extension support and expects RuntimeError; the app then closes the connection explicitly. Another sends two start messages and expects the response-state check to reject the second.",
+      "notes": [
+        {
+          "start": 359,
+          "end": 377,
+          "title": "No server extension",
+          "text": "The test removes the extension itself. send_denial_response raises; the later websocket.close() is a separate action by the app, not an automatic fallback."
+        },
+        {
+          "start": 393,
+          "end": 410,
+          "title": "Start twice",
+          "text": "After the first start, the state expects a body. The test asserts the error describing the unexpected second start."
+        },
+        {
+          "start": 294,
+          "end": 300,
+          "title": "Existing close behavior",
+          "text": "The existing close test now explicitly consumes the connection message, then still checks the original WebSocket close code."
+        }
+      ],
+      "check": "Can these in-process tests establish support in a real ASGI server?",
+      "next": "You have followed all five changed files. Revisit a step or open a definition to explore further.",
+      "recap": [
+        "This walkthrough was checked against the pinned Git source.",
+        "The upstream Starlette test suite was not executed while creating this example.",
+        "Live ASGI server behavior is outside the checks shown here."
+      ],
+      "reference": {
+        "path": "tests/test_websockets.py",
+        "start": 294,
+        "end": 305,
+        "label": "Reference · existing close test",
+        "text": "The last line asserts the existing close code."
+      }
+    }
+  ],
+  "definitions": {
+    "WebSocket": {
+      "name": "WebSocket",
+      "path": "starlette/websockets.py",
+      "start": 25,
+      "end": 213,
+      "description": "The complete connection wrapper. Its send method validates outgoing message order."
+    },
+    "WebSocketState": {
+      "name": "WebSocketState",
+      "path": "starlette/websockets.py",
+      "start": 12,
+      "end": 16,
+      "description": "The four application/connection states used by the WebSocket wrapper."
+    },
+    "WebSocket.send": {
+      "name": "WebSocket.send",
+      "path": "starlette/websockets.py",
+      "start": 64,
+      "end": 112,
+      "description": "Validate outgoing messages and update application_state before forwarding them."
+    },
+    "send_denial_response": {
+      "name": "WebSocket.send_denial_response",
+      "path": "starlette/websockets.py",
+      "start": 207,
+      "end": 213,
+      "description": "Run a response through this WebSocket when the server advertises extension support."
+    },
+    "WebSocketDisconnect": {
+      "name": "WebSocketDisconnect",
+      "path": "starlette/websockets.py",
+      "start": 19,
+      "end": 22,
+      "description": "A disconnect exception carrying a close code and reason."
+    },
+    "Response": {
+      "name": "Response",
+      "path": "starlette/responses.py",
+      "start": 25,
+      "end": 162,
+      "description": "The complete base response class. __call__ emits start and body messages; subclasses that override it must be considered separately."
+    },
+    "Response.__call__": {
+      "name": "Response.__call__",
+      "path": "starlette/responses.py",
+      "start": 150,
+      "end": 162,
+      "description": "Emit status, headers and body using message names appropriate to the scope."
+    },
+    "WebSocketDenialResponse": {
+      "name": "WebSocketDenialResponse",
+      "path": "starlette/testclient.py",
+      "start": 81,
+      "end": 88,
+      "description": "A test-client exception combining HTTP response inspection with disconnect handling."
+    },
+    "raise_on_close": {
+      "name": "WebSocketTestSession._raise_on_close",
+      "path": "starlette/testclient.py",
+      "start": 169,
+      "end": 188,
+      "description": "Convert ordinary closes or denial response messages into inspectable exceptions."
+    },
+    "Scope": {
+      "name": "Scope",
+      "path": "starlette/types.py",
+      "start": 10,
+      "end": 10,
+      "description": "A mutable mapping containing connection metadata."
+    },
+    "Message": {
+      "name": "Message",
+      "path": "starlette/types.py",
+      "start": 11,
+      "end": 11,
+      "description": "A mutable mapping used for one ASGI event."
+    },
+    "Receive": {
+      "name": "Receive",
+      "path": "starlette/types.py",
+      "start": 13,
+      "end": 13,
+      "description": "An async callback that receives the next ASGI message."
+    },
+    "Send": {
+      "name": "Send",
+      "path": "starlette/types.py",
+      "start": 14,
+      "end": 14,
+      "description": "An async callback that sends an ASGI message."
+    }
+  },
+  "pythonSymbols": {
+    "starlette/websockets.py": {
+      "WebSocket": "WebSocket",
+      "WebSocketState": "WebSocketState",
+      "WebSocketDisconnect": "WebSocketDisconnect",
+      "Response": "Response",
+      "Scope": "Scope",
+      "Message": "Message",
+      "Receive": "Receive",
+      "Send": "Send"
+    },
+    "starlette/responses.py": {
+      "Response": "Response",
+      "Scope": "Scope",
+      "Receive": "Receive",
+      "Send": "Send"
+    },
+    "starlette/testclient.py": {
+      "WebSocketDisconnect": "WebSocketDisconnect",
+      "WebSocketDenialResponse": "WebSocketDenialResponse"
+    },
+    "tests/test_websockets.py": {
+      "WebSocket": "WebSocket",
+      "Response": "Response",
+      "WebSocketDenialResponse": "WebSocketDenialResponse",
+      "WebSocketDisconnect": "WebSocketDisconnect",
+      "WebSocketState": "WebSocketState"
+    },
+    "starlette/types.py": {
+      "Scope": "Scope",
+      "Message": "Message",
+      "Receive": "Receive",
+      "Send": "Send"
+    }
+  },
+  "links": [
+    {
+      "path": "starlette/websockets.py",
+      "line": 209,
+      "text": "send",
+      "column": 58,
+      "definition": "WebSocket.send"
+    },
+    {
+      "path": "starlette/responses.py",
+      "line": 150,
+      "text": "__call__",
+      "definition": "Response.__call__"
+    },
+    {
+      "path": "starlette/testclient.py",
+      "line": 114,
+      "text": "_raise_on_close",
+      "definition": "raise_on_close"
+    },
+    {
+      "path": "tests/test_websockets.py",
+      "line": 314,
+      "text": "send_denial_response",
+      "definition": "send_denial_response"
+    }
+  ],
+  "attribution": {
+    "title": "Starlette — BSD-3-Clause · Copyright © 2018, Encode OSS Ltd.",
+    "text": "Copyright © 2018, [Encode OSS Ltd](https://www.encode.io/).\nAll rights reserved.\n\nRedistribution and use in source and binary forms, with or without\nmodification, are permitted provided that the following conditions are met:\n\n* Redistributions of source code must retain the above copyright notice, this\n  list of conditions and the following disclaimer.\n\n* Redistributions in binary form must reproduce the above copyright notice,\n  this list of conditions and the following disclaimer in the documentation\n  and/or other materials provided with the distribution.\n\n* Neither the name of the copyright holder nor the names of its\n  contributors may be used to endorse or promote products derived from\n  this software without specific prior written permission.\n\nTHIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\"\nAND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE\nIMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE\nDISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE\nFOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL\nDAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR\nSERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER\nCAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,\nOR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\nOF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n",
+    "url": "https://github.com/Kludex/starlette/blob/094f0809f03efd218c6d10ae92d076332c2c0926/LICENSE.md"
+  },
+  "language": "en"
+}

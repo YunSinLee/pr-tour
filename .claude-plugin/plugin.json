@@ -1,0 +1,9 @@
+{
+  "name": "pr-files-changed-guide",
+  "version": "0.1.0",
+  "description": "Turn a GitHub PR into a standalone HTML walkthrough with real diffs and definition previews.",
+  "author": {"name": "Yun Sin Lee", "url": "https://github.com/YunSinLee"},
+  "repository": "https://github.com/YunSinLee/pr-files-changed-guide",
+  "license": "MIT",
+  "skills": "./skills/"
+}

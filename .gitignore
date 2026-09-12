@@ -1,0 +1,9 @@
+analysis-input/
+.cache/
+__pycache__/
+*.py[cod]
+.DS_Store
+node_modules/
+playwright-report/
+test-results/
+dist/

@@ -1,0 +1,11 @@
+{
+  "name": "pr-files-changed-guide",
+  "owner": {"name": "Yun Sin Lee"},
+  "plugins": [
+    {
+      "name": "pr-files-changed-guide",
+      "source": "./",
+      "description": "Read a GitHub PR in code-flow order with a standalone HTML guide."
+    }
+  ]
+}
