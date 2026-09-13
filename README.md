@@ -69,6 +69,7 @@ The agent reads the pinned source, authors the reading order and explanations, t
 ## What the guide does
 
 - Arranges changes by code flow. A file can appear in more than one step.
+- Shows the explanation before the code by default. Use **Layout** to switch the two panes; the browser remembers your choice when local storage is available. Narrow screens stack the panes in the same order.
 - Shows actual additions, deletions, old/new line numbers, and focused line notes.
 - Expands unchanged context from either end, or displays the complete file.
 - Opens selected function and type definitions, including related definitions and a back button.

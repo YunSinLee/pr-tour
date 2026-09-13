@@ -9,9 +9,10 @@ Create a guide the user can keep beside GitHub and read through themselves. Reus
 
 ## Result
 
-The generated HTML has three panes: reading order, actual diff, and explanation with clickable line references. Preserve these interactions:
+The generated HTML has three panes: reading order, explanation with clickable line references, and actual diff. Preserve these interactions:
 
 - Navigate by code flow, with previous/next buttons and hash links. A file may appear in several steps.
+- Let readers switch explanation/code order with the Layout selector. Default to explanation before code, retain the browser preference when storage is available, and keep reading state when switching.
 - Show old/new line numbers, additions/deletions, and the lines for the selected explanation.
 - Expand omitted unchanged code from either end by 20 lines, reveal a whole gap, or show the whole file and collapse back.
 - Click selected function/type names for their source, a short explanation, and links to related definitions. Provide back, close, and Escape behavior.
