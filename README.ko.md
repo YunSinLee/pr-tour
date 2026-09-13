@@ -1,6 +1,6 @@
-# PR Files Changed Guide
+# PR Tour
 
-**PR을 코드 흐름대로, 한 구간씩 따라 읽습니다.**
+**PR의 코드 흐름을 안내하는 가이드.**
 
 [English](README.md)
 
@@ -12,8 +12,8 @@ GitHub PR을 독립 실행형 HTML 가이드로 만드는 에이전트 스킬입
 
 [Starlette PR #2041](https://github.com/Kludex/starlette/pull/2041)의 WebSocket 연결 거절 응답을 따라갑니다.
 
-- **[한국어 데모 바로 보기](https://yunsinlee.github.io/pr-files-changed-guide/demo.ko.html)** · **[English demo](https://yunsinlee.github.io/pr-files-changed-guide/demo.en.html)** — 설치 없이 브라우저에서 열어보세요.
-- [한국어 HTML 다운로드](https://github.com/YunSinLee/pr-files-changed-guide/raw/refs/heads/main/docs/demo.ko.html) · [English HTML 다운로드](https://github.com/YunSinLee/pr-files-changed-guide/raw/refs/heads/main/docs/demo.en.html) — 저장하면 오프라인에서도 읽을 수 있습니다.
+- **[한국어 데모 바로 보기](https://yunsinlee.github.io/pr-tour/demo.ko.html)** · **[English demo](https://yunsinlee.github.io/pr-tour/demo.en.html)** — 설치 없이 브라우저에서 열어보세요.
+- [한국어 HTML 다운로드](https://github.com/YunSinLee/pr-tour/raw/refs/heads/main/docs/demo.ko.html) · [English HTML 다운로드](https://github.com/YunSinLee/pr-tour/raw/refs/heads/main/docs/demo.en.html) — 저장하면 오프라인에서도 읽을 수 있습니다.
 - [한국어 manifest](examples/starlette-2041.ko.json) · [English manifest](examples/starlette-2041.en.json)
 
 변경 파일 5개, 읽기 단계 8개, 정의 미리보기 13개를 담았습니다. 두 예제는 같은 커밋을 기준으로 만들었습니다. 완성된 HTML은 서버와 인터넷 없이 읽을 수 있습니다.
@@ -23,32 +23,32 @@ GitHub PR을 독립 실행형 HTML 가이드로 만드는 에이전트 스킬입
 Codex, Claude Code 등 지원하는 에이전트를 선택해 설치할 수 있습니다.
 
 ```sh
-npx skills add YunSinLee/pr-files-changed-guide --skill pr-files-changed-guide
+npx skills add YunSinLee/pr-tour --skill pr-tour
 ```
 
 Codex를 지정하려면:
 
 ```sh
-npx skills add YunSinLee/pr-files-changed-guide --skill pr-files-changed-guide --agent codex
+npx skills add YunSinLee/pr-tour --skill pr-tour --agent codex
 ```
 
-현재 설치 도구에는 Node.js 22.20 이상이 필요합니다. 스킬 실행은 Python과 Git을 사용합니다. 직접 설치하려면 `skills/pr-files-changed-guide/` 폴더를 에이전트의 스킬 경로에 복사해도 됩니다. Codex의 사용자 스킬 경로는 `~/.agents/skills/`입니다.
+현재 설치 도구에는 Node.js 22.20 이상이 필요합니다. 스킬 실행은 Python과 Git을 사용합니다. 직접 설치하려면 `skills/pr-tour/` 폴더를 에이전트의 스킬 경로에 복사해도 됩니다. Codex의 사용자 스킬 경로는 `~/.agents/skills/`입니다.
 
 Claude Code의 플러그인 방식으로 설치하려면:
 
 ```text
-/plugin marketplace add YunSinLee/pr-files-changed-guide
-/plugin install pr-files-changed-guide@pr-files-changed-guide
+/plugin marketplace add YunSinLee/pr-tour
+/plugin install pr-tour@pr-tour
 ```
 
-설치 후 `/pr-files-changed-guide:pr-files-changed-guide`를 호출하거나 PR의 HTML 가이드를 만들어달라고 요청하세요. 이 저장소의 설치 경로와 외부 서비스가 운영하는 추천 레지스트리 등록은 별개입니다.
+설치 후 `/pr-tour:pr-tour`를 호출하거나 PR의 HTML 가이드를 만들어달라고 요청하세요. 이 저장소의 설치 경로와 외부 서비스가 운영하는 추천 레지스트리 등록은 별개입니다.
 
 ## 사용
 
 해당 저장소에서 Codex에 요청합니다.
 
 ```text
-$pr-files-changed-guide로 이 PR을 코드 흐름대로 따라 읽는 HTML 가이드를 만들어줘.
+$pr-tour로 이 PR을 코드 흐름대로 따라 읽는 HTML 가이드를 만들어줘.
 한국어로 설명하고, 함수·타입 정의와 생략 코드 펼치기를 포함해줘.
 나중에 수정할 수 있도록 manifest도 남겨줘.
 https://github.com/Kludex/starlette/pull/2041
@@ -77,10 +77,10 @@ HTML에는 저장소 코드가 포함됩니다. 공개할 때는 공유 가능�
 
 ## 개발과 기여
 
-[manifest 형식](skills/pr-files-changed-guide/references/manifest.md)에 따라 설명을 작성한 뒤 실행합니다.
+[manifest 형식](skills/pr-tour/references/manifest.md)에 따라 설명을 작성한 뒤 실행합니다.
 
 ```sh
-python3 skills/pr-files-changed-guide/scripts/build_guide.py \
+python3 skills/pr-tour/scripts/build_guide.py \
   --repo /path/to/repository \
   --manifest /path/to/guide.json \
   --output /path/to/guide.html

@@ -27,7 +27,7 @@ def main():
                             'https://github.com/Kludex/starlette.git', manifest['base'], manifest['head']],
                            cwd=repo, check=True)
     for language in ('en', 'ko'):
-        subprocess.run(['python3', str(ROOT / 'skills/pr-files-changed-guide/scripts/build_guide.py'),
+        subprocess.run(['python3', str(ROOT / 'skills/pr-tour/scripts/build_guide.py'),
                         '--repo', str(repo), '--manifest', str(ROOT / f'examples/starlette-2041.{language}.json'),
                         '--output', str(ROOT / f'docs/demo.{language}.html'), '--overwrite'], check=True)
 

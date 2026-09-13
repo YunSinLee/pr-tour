@@ -1,4 +1,0 @@
-interface:
-  display_name: "PR Files Changed Guide"
-  short_description: "Read PRs with real diffs and definition previews"
-  default_prompt: "Use $pr-files-changed-guide to create an HTML walkthrough of this PR, following the code flow with definition previews."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR Tour"
+  short_description: "Read PRs with real diffs and definition previews"
+  default_prompt: "Use $pr-tour to create an HTML walkthrough of this PR, following the code flow with definition previews."

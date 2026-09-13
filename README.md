@@ -1,6 +1,6 @@
-# PR Files Changed Guide
+# PR Tour
 
-**Understand a pull request, one code path at a time.**
+**A guided tour of your pull request.**
 
 [한국어](README.ko.md)
 
@@ -12,8 +12,8 @@ An agent skill that turns a GitHub PR into a standalone HTML reading guide. Foll
 
 The example follows [Starlette PR #2041](https://github.com/Kludex/starlette/pull/2041): sending an HTTP denial response before accepting a WebSocket connection.
 
-- **[Try the English demo](https://yunsinlee.github.io/pr-files-changed-guide/demo.en.html)** · **[한국어 데모](https://yunsinlee.github.io/pr-files-changed-guide/demo.ko.html)** — open directly in your browser.
-- [Download English HTML](https://github.com/YunSinLee/pr-files-changed-guide/raw/refs/heads/main/docs/demo.en.html) · [Download 한국어 HTML](https://github.com/YunSinLee/pr-files-changed-guide/raw/refs/heads/main/docs/demo.ko.html) — save a copy to read offline.
+- **[Try the English demo](https://yunsinlee.github.io/pr-tour/demo.en.html)** · **[한국어 데모](https://yunsinlee.github.io/pr-tour/demo.ko.html)** — open directly in your browser.
+- [Download English HTML](https://github.com/YunSinLee/pr-tour/raw/refs/heads/main/docs/demo.en.html) · [Download 한국어 HTML](https://github.com/YunSinLee/pr-tour/raw/refs/heads/main/docs/demo.ko.html) — save a copy to read offline.
 - [English source manifest](examples/starlette-2041.en.json) · [한국어 source manifest](examples/starlette-2041.ko.json)
 
 Five changed files, eight reading steps, thirteen definition previews. Both examples use the same pinned commits. The generated HTML needs no server or network connection; GitHub links are optional.
@@ -25,25 +25,25 @@ Five changed files, eight reading steps, thirteen definition previews. Both exam
 Use the [skills CLI](https://github.com/vercel-labs/skills) to choose an agent and install the skill:
 
 ```sh
-npx skills add YunSinLee/pr-files-changed-guide --skill pr-files-changed-guide
+npx skills add YunSinLee/pr-tour --skill pr-tour
 ```
 
 To target Codex explicitly:
 
 ```sh
-npx skills add YunSinLee/pr-files-changed-guide --skill pr-files-changed-guide --agent codex
+npx skills add YunSinLee/pr-tour --skill pr-tour --agent codex
 ```
 
-The current skills CLI requires Node.js 22.20 or newer. The skill itself uses Python and Git. You can also copy `skills/pr-files-changed-guide/` into a skill directory supported by your agent, such as `~/.agents/skills/` for Codex.
+The current skills CLI requires Node.js 22.20 or newer. The skill itself uses Python and Git. You can also copy `skills/pr-tour/` into a skill directory supported by your agent, such as `~/.agents/skills/` for Codex.
 
 ### Claude Code plugin marketplace
 
 ```text
-/plugin marketplace add YunSinLee/pr-files-changed-guide
-/plugin install pr-files-changed-guide@pr-files-changed-guide
+/plugin marketplace add YunSinLee/pr-tour
+/plugin install pr-tour@pr-tour
 ```
 
-Invoke `/pr-files-changed-guide:pr-files-changed-guide`, or ask Claude Code to make an HTML walkthrough of a PR.
+Invoke `/pr-tour:pr-tour`, or ask Claude Code to make an HTML walkthrough of a PR.
 
 This repository provides an installable skill and a Claude Code marketplace. Inclusion in any third-party curated registry is a separate process.
 
@@ -52,7 +52,7 @@ This repository provides an installable skill and a Claude Code marketplace. Inc
 In Codex, inside the relevant repository:
 
 ```text
-Use $pr-files-changed-guide to create an English HTML walkthrough of
+Use $pr-tour to create an English HTML walkthrough of
 https://github.com/Kludex/starlette/pull/2041.
 Explain the execution flow, include definition previews, and keep the manifest.
 ```
@@ -60,7 +60,7 @@ Explain the execution flow, include definition previews, and keep the manifest.
 Or ask in Korean:
 
 ```text
-$pr-files-changed-guide로 이 PR을 코드 흐름대로 따라 읽는 HTML 가이드를 만들어줘.
+$pr-tour로 이 PR을 코드 흐름대로 따라 읽는 HTML 가이드를 만들어줘.
 한국어로 설명하고, 함수·타입 정의와 생략 코드 펼치기를 포함해줘.
 ```
 
@@ -87,10 +87,10 @@ Generated guides include repository source code. Choose an example you can share
 
 ## Build and contribute
 
-Read the [manifest format](skills/pr-files-changed-guide/references/manifest.md), then run:
+Read the [manifest format](skills/pr-tour/references/manifest.md), then run:
 
 ```sh
-python3 skills/pr-files-changed-guide/scripts/build_guide.py \
+python3 skills/pr-tour/scripts/build_guide.py \
   --repo /path/to/repository \
   --manifest /path/to/guide.json \
   --output /path/to/guide.html

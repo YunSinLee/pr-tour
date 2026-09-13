@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL = ROOT / 'skills/pr-files-changed-guide'
+SKILL = ROOT / 'skills/pr-tour'
 spec = importlib.util.spec_from_file_location('build_guide', SKILL / 'scripts/build_guide.py')
 builder = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(builder)

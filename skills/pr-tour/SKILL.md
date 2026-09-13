@@ -1,9 +1,9 @@
 ---
-name: pr-files-changed-guide
+name: pr-tour
 description: Create a standalone HTML guide for reading a GitHub PR's Files changed in code-flow order, with real diffs, expandable omitted code, and function/type definition previews. Use when the user wants an HTML PR walkthrough or a reusable companion to Files changed; ordinary prose explanations and bug reviews do not require this skill.
 ---
 
-# PR Files Changed Guide
+# PR Tour
 
 Create a guide the user can keep beside GitHub and read through themselves. Reuse the bundled renderer; spend reasoning on the actual code flow and explanations. Write explanations in the user’s requested language, or match their conversation language. Set `language` to `ko` or `en` for the built-in interface; this does not translate authored explanations.
 
@@ -44,7 +44,7 @@ Use the bundled script with the Python version appropriate to the source when en
 python3 <skill-directory>/scripts/build_guide.py \
   --repo <synced-worktree> \
   --manifest <guide-manifest.json> \
-  --output <output-directory>/pr-<number>-files-changed-guide.html
+  --output <output-directory>/pr-<number>-tour.html
 ```
 
 `assets/guide.html` is the reusable template, not an output to open. The builder supplies PR metadata, complete old/new text, real hunk rows, definitions, and explanations. It verifies reconstructed source and line ranges before writing. It supports GitHub Enterprise links from the supplied PR URL.

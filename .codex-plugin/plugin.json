@@ -1,5 +1,5 @@
 {
-  "name": "pr-files-changed-guide",
+  "name": "pr-tour",
   "version": "0.1.0",
   "description": "Turn a GitHub PR into a standalone HTML walkthrough with real diffs and definition previews.",
   "author": {
@@ -8,7 +8,7 @@
   },
   "skills": "./skills/",
   "interface": {
-    "displayName": "PR Files Changed Guide",
+    "displayName": "PR Tour",
     "shortDescription": "Read pull requests in code-flow order.",
     "longDescription": "Build a standalone HTML guide with the real Git diff, focused line notes, expandable context and selected function/type definitions. Korean and English controls.",
     "developerName": "Yun Sin Lee",
@@ -16,7 +16,7 @@
     "capabilities": [],
     "defaultPrompt": "Create an HTML reading guide for this pull request."
   },
-  "repository": "https://github.com/YunSinLee/pr-files-changed-guide",
+  "repository": "https://github.com/YunSinLee/pr-tour",
   "license": "MIT",
   "keywords": [
     "code-review",
