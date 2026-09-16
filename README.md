@@ -66,6 +66,10 @@ $pr-tour로 이 PR을 코드 흐름대로 따라 읽는 HTML 가이드를 만들
 
 The agent reads the pinned source, authors the reading order and explanations, then runs the bundled builder. The Python script alone does not generate explanations from a PR URL.
 
+By default, the skill keeps the HTML and its manifest together in a unique `/tmp/pr-tour-<suffix>/` directory, keeping generated files out of your working directory. On platforms without `/tmp`, it uses the system temporary directory. It opens the guide and returns links to both files. Temporary files may be cleared by the system; request an output path to keep them somewhere permanent. Updating an existing guide reuses its current paths.
+
+For example: `Save the guide and manifest in ~/Documents/pr-tours/starlette-2041/.`
+
 ## What the guide does
 
 - Arranges changes by code flow. A file can appear in more than one step.
