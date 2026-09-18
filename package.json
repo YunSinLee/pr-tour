@@ -1,0 +1,10 @@
+{
+  "name": "pr-tour-tests",
+  "private": true,
+  "scripts": {
+    "test:dialog": "node --test tests/test_dialog.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.58.2"
+  }
+}

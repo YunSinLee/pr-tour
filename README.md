@@ -116,6 +116,15 @@ Run syntax-rendering regression tests with Node.js 20+ (no package installation)
 node --test tests/test_syntax.cjs
 ```
 
+Run browser regression tests for definition previews in both demos (Node.js 20+):
+
+```sh
+npm ci
+npx playwright install chromium webkit
+npm run test:dialog
+PR_TOUR_BROWSER=webkit npm run test:dialog
+```
+
 Regenerate both public examples from the pinned Starlette commits:
 
 ```sh
