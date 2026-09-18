@@ -95,9 +95,31 @@
     definitionHistory.pop();
     renderDefinition(definitionHistory[definitionHistory.length - 1]);
   });
-  el('definition-dialog').addEventListener('close', () => { definitionHistory.length = 0; });
+  dismissOnBackdropClick(el('definition-dialog'));
   window.addEventListener('hashchange', readHash);
   readHash();
+
+  function dismissOnBackdropClick(dialog) {
+    let startedOnBackdrop = false;
+    const isBackdrop = event => {
+      if (event.target !== dialog) return false;
+      const rect = dialog.getBoundingClientRect();
+      return event.clientX < rect.left || event.clientX > rect.right ||
+        event.clientY < rect.top || event.clientY > rect.bottom;
+    };
+    dialog.addEventListener('pointerdown', event => {
+      startedOnBackdrop = event.isPrimary && event.button === 0 && isBackdrop(event);
+    });
+    dialog.addEventListener('pointercancel', () => { startedOnBackdrop = false; });
+    dialog.addEventListener('close', () => { startedOnBackdrop = false; });
+    dialog.addEventListener('click', event => {
+      // A drag starting inside can also target the dialog on release outside.
+      // Wait for click so closing cannot send the release to content underneath.
+      const dismiss = startedOnBackdrop && event.button === 0 && event.detail > 0 && isBackdrop(event);
+      startedOnBackdrop = false;
+      if (dismiss) dialog.close();
+    });
+  }
 
   function setLayout(value) {
     const layout = value === 'code-first' ? value : 'code-last';
@@ -328,6 +350,8 @@
   }
 
   function openDefinition(name) {
+    // Start a fresh history even if the previous close event is still queued.
+    if (!el('definition-dialog').open) definitionHistory.length = 0;
     definitionHistory.push(name);
     renderDefinition(name);
     if (!el('definition-dialog').open) el('definition-dialog').showModal();

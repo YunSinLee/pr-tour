@@ -107,6 +107,15 @@ python3 scripts/rebuild_examples.py
 node --test tests/test_syntax.cjs
 ```
 
+두 데모의 정의 미리보기 브라우저 회귀 테스트는 Node.js 20 이상에서 실행합니다.
+
+```sh
+npm ci
+npx playwright install chromium webkit
+npm run test:dialog
+PR_TOUR_BROWSER=webkit npm run test:dialog
+```
+
 읽기 편의성, 원본 연결의 정확성, UI 번역에 대한 기여를 환영합니다. 재현 가능한 공개 예제나 작은 테스트 사례와 확인 결과를 함께 남겨주세요.
 
 ## 라이선스
