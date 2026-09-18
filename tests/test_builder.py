@@ -163,6 +163,11 @@ class BuilderTests(unittest.TestCase):
         payload = re.search(r'<script type="application/json" id="guide-data">(.*?)</script>', page, re.S)[1]
         self.assertEqual(json.loads(payload)['steps'][0]['why'], manifest['steps'][0]['why'])
         self.assertFalse(re.search('[가-힣]', page.replace(payload, '')))
+        self.assertIn('Copyright (c) 2006, Ivan Sagalaev.', page)
+        self.assertIn('const TourSyntax =', page)
+        self.assertNotIn('__SYNTAX_ASSETS__', page)
+        self.assertFalse(re.search(r'<script\b[^>]*\bsrc=', page))
+        self.assertEqual(len(re.findall(r'</script\s*>', page, re.I)), 3)
 
     def test_cli_refuses_to_overwrite_an_existing_output(self):
         with tempfile.TemporaryDirectory() as tmp:

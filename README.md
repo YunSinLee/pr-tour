@@ -75,6 +75,7 @@ For example: `Save the guide and manifest in ~/Documents/pr-tours/starlette-2041
 - Arranges changes by code flow. A file can appear in more than one step.
 - Shows the explanation before the code by default. Use **Layout** to switch the two panes; the browser remembers your choice when local storage is available. Narrow screens stack the panes in the same order.
 - Shows actual additions, deletions, old/new line numbers, and focused line notes.
+- Colors keywords, strings, comments, and function names in diffs and definition previews. Syntax highlighting works offline for common languages; unsupported file types remain plain text.
 - Expands unchanged context from either end, or displays the complete file.
 - Opens selected function and type definitions, including related definitions and a back button.
 - Keeps explanations, source, styles, and scripts in one HTML file.
@@ -109,6 +110,12 @@ Run the builder regression suite without third-party Python packages:
 python3 -m unittest discover -s tests -v
 ```
 
+Run syntax-rendering regression tests with Node.js 20+ (no package installation):
+
+```sh
+node --test tests/test_syntax.cjs
+```
+
 Regenerate both public examples from the pinned Starlette commits:
 
 ```sh
@@ -122,3 +129,5 @@ Contributions are welcome for reading usability, source-link correctness, and ad
 ## License
 
 [MIT](LICENSE) for this skill, builder, renderer, and authored explanations. Starlette source embedded in the examples retains its [BSD-3-Clause license](examples/STARLETTE-LICENSE.md). This is an independent example, not an endorsement by Starlette.
+
+The bundled highlight.js library retains its [BSD-3-Clause license](skills/pr-tour/assets/vendor/highlightjs/LICENSE), which is also embedded in generated guides.

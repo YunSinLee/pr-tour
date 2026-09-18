@@ -14,6 +14,7 @@ The generated HTML has three panes: reading order, explanation with clickable li
 - Navigate by code flow, with previous/next buttons and hash links. A file may appear in several steps.
 - Let readers switch explanation/code order with the Layout selector. Default to explanation before code, retain the browser preference when storage is available, and keep reading state when switching.
 - Show old/new line numbers, additions/deletions, and the lines for the selected explanation.
+- Preserve the bundled offline syntax highlighting in diffs, expanded context, and definition previews. Unsupported extensions fall back to plain text; syntax colors do not imply symbol resolution.
 - Expand omitted unchanged code from either end by 20 lines, reveal a whole gap, or show the whole file and collapse back.
 - Click selected function/type names for their source, a short explanation, and links to related definitions. Provide back, close, and Escape behavior.
 - Keep all code, styles, scripts, and definitions inside the final HTML so opening the file in Whale or another modern browser works without a server. GitHub links are optional exits.

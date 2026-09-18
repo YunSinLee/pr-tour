@@ -388,7 +388,17 @@ def render(template, data):
     require(template.count('__GUIDE_DATA__') == 1, 'Missing template data slot')
     for key, value in values.items():
         template = template.replace(f'__{key}__', html.escape(str(value), quote=True))
-    require(not re.search(r'__[A-Z_]+__', template.replace('__GUIDE_DATA__', '')), 'Unresolved template token')
+    require(template.count('__SYNTAX_ASSETS__') == 1, 'Missing syntax asset slot')
+    require(not re.search(r'__[A-Z_]+__', template.replace('__GUIDE_DATA__', '').replace('__SYNTAX_ASSETS__', '')),
+            'Unresolved template token')
+    assets = Path(__file__).resolve().parents[1] / 'assets'
+    license_text = (assets / 'vendor/highlightjs/LICENSE').read_text(encoding='utf-8')
+    scripts = '\n'.join((assets / name).read_text(encoding='utf-8') for name in
+                        ['vendor/highlightjs/highlight.min.js', 'syntax.js'])
+    # Bundle pinned local assets and their license; viewing never needs a CDN.
+    bundled = f'/* highlight.js 11.12.0\n{license_text}*/\n{scripts}'
+    bundled = re.sub(r'</script', r'<\\/script', bundled, flags=re.IGNORECASE)
+    template = template.replace('__SYNTAX_ASSETS__', bundled)
     return template.replace('__GUIDE_DATA__', json.dumps(data, ensure_ascii=False).replace('<', '\\u003c'))
 
 
