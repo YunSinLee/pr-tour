@@ -2,7 +2,9 @@
   "name": "pr-tour-tests",
   "private": true,
   "scripts": {
-    "test:dialog": "node --test tests/test_dialog.cjs"
+    "test:dialog": "node --test tests/test_dialog.cjs",
+    "test:mobile": "node --test tests/test_mobile.cjs",
+    "test:browser": "node --test tests/test_dialog.cjs tests/test_mobile.cjs"
   },
   "devDependencies": {
     "playwright": "1.58.2"

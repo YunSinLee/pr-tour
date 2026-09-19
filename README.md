@@ -73,8 +73,9 @@ For example: `Save the guide and manifest in ~/Documents/pr-tours/starlette-2041
 ## What the guide does
 
 - Arranges changes by code flow. A file can appear in more than one step.
-- Shows the explanation before the code by default. Use **Layout** to switch the two panes; the browser remembers your choice when local storage is available. Narrow screens stack the panes in the same order.
+- Shows the explanation before the code by default. Use **Layout** to switch the two panes; the browser remembers your choice when local storage is available. On phones and narrow screens, **Guide / Code** tabs show one pane at a time and keep your reading position. Selecting a note opens its focused code; moving to another step returns to the guide.
 - Shows actual additions, deletions, old/new line numbers, and focused line notes.
+- Offers optional line wrapping on mobile, larger navigation controls, and a definition preview that fills most of the screen. Phone landscape uses a compact header.
 - Colors keywords, strings, comments, and function names in diffs and definition previews. Syntax highlighting works offline for common languages; unsupported file types remain plain text.
 - Expands unchanged context from either end, or displays the complete file.
 - Opens selected function and type definitions, including related definitions and a back button.
@@ -85,7 +86,7 @@ For example: `Save the guide and manifest in ~/Documents/pr-tours/starlette-2041
 
 To make a guide: an agent that supports skills, Python 3.9+, Git, and access to the repository. The preferred GitHub workflow also uses the authenticated `gh` CLI. Python tokenization may require a newer interpreter for newer source syntax.
 
-To read a guide: a modern browser with JavaScript enabled. No Python, agent, or account is required.
+To read a guide: a modern browser with JavaScript enabled. No Python, agent, or account is required. An in-app artifact viewer must allow the embedded JavaScript to run.
 
 The builder checks source reconstruction, line ranges, file coverage, and definition-link offsets. Explanations and symbol meanings still need review. Definition links are authored mappings, not an IDE language server. Every changed file must appear, but the builder cannot prove that every important behavior has been explained. Binary, non-UTF-8, and submodule changes show an explicit preview limitation.
 
@@ -116,13 +117,13 @@ Run syntax-rendering regression tests with Node.js 20+ (no package installation)
 node --test tests/test_syntax.cjs
 ```
 
-Run browser regression tests for definition previews in both demos (Node.js 20+):
+Run browser regression tests for mobile reading and definition previews in both demos (Node.js 20+):
 
 ```sh
 npm ci
 npx playwright install chromium webkit
-npm run test:dialog
-PR_TOUR_BROWSER=webkit npm run test:dialog
+npm run test:browser
+PR_TOUR_BROWSER=webkit npm run test:browser
 ```
 
 Regenerate both public examples from the pinned Starlette commits:

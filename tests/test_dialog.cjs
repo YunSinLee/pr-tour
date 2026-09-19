@@ -20,6 +20,7 @@ async function withGuide(language, mobile, run) {
     // Exercise the actual standalone examples with network access disabled.
     await context.route(/^https?:/, route => route.abort());
     await page.goto(pathToFileURL(resolve(`docs/demo.${language}.html`)).href + '#entry');
+    if (mobile) await page.locator('#code-tab').tap();
     const trigger = page.locator('#diff-body [data-symbol="Response"]').last();
     await trigger.scrollIntoViewIfNeeded();
     await trigger.focus();
