@@ -69,6 +69,7 @@ for (const language of ['en', 'ko']) {
       assert.equal(await page.locator('#guide').evaluate(el => el.scrollTop), 0);
       await page.locator('#code-tab').tap();
       await assertFocusedLinesVisible(page);
+      assert.equal(await page.locator('#diff-scroll').evaluate(el => el.scrollLeft), 0, 'a different file starts at its left edge');
     });
   });
 

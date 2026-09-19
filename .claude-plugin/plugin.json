@@ -1,6 +1,6 @@
 {
   "name": "pr-tour",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Turn a GitHub PR into a standalone HTML walkthrough with real diffs and definition previews.",
   "author": {"name": "Yun Sin Lee", "url": "https://github.com/YunSinLee"},
   "repository": "https://github.com/YunSinLee/pr-tour",

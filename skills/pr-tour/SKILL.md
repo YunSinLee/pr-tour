@@ -9,10 +9,11 @@ Create a guide the user can keep beside GitHub and read through themselves. Reus
 
 ## Result
 
-The generated HTML has three panes: reading order, explanation with clickable line references, and actual diff. Preserve these interactions:
+On desktop, the generated HTML has three panes: reading order, explanation with clickable line references, and actual diff. Narrow screens use a step picker and Guide / Code tabs. Preserve these interactions:
 
 - Navigate by code flow, with previous/next buttons and hash links. A file may appear in several steps.
-- Let readers switch explanation/code order with the Layout selector. Default to explanation before code, retain the browser preference when storage is available, and keep reading state when switching.
+- On desktop, let readers switch explanation/code order with the Layout selector. Default to explanation before code, retain the browser preference when storage is available, and keep reading state when switching.
+- On mobile, keep the reading position of each tab. Selecting a note opens its focused code; changing steps returns to the guide. Preserve optional code wrapping, larger controls, and the expanded definition preview.
 - Show old/new line numbers, additions/deletions, and the lines for the selected explanation.
 - Preserve the bundled offline syntax highlighting in diffs, expanded context, and definition previews. Unsupported extensions fall back to plain text; syntax colors do not imply symbol resolution.
 - Expand omitted unchanged code from either end by 20 lines, reveal a whole gap, or show the whole file and collapse back.
@@ -68,7 +69,7 @@ For languages other than Python, use explicit definition occurrences with verifi
 ## Verify and deliver
 
 1. Check the builder report: covered files, snapshot, definitions, and any unavailable previews. Resolve source/range errors rather than suppressing them.
-2. Open the generated HTML using the available browser tools. Verify step navigation and focus, both 20-line expansion directions, full-file expansion/collapse, definition opening, a related definition, back, and Escape. Check a long file and a narrow layout when relevant.
+2. Open the generated HTML using the available browser tools. Verify step navigation and focus, both 20-line expansion directions, full-file expansion/collapse, definition opening, a related definition, back, and Escape. Check a long file. In a narrow layout, verify tab switching, reading-position retention, note-to-code navigation, line wrapping, and closing the definition preview. An in-app artifact viewer must permit embedded JavaScript; do not claim compatibility with a host app without verifying it.
 3. Confirm full-file rows retain their original line numbers and content. The script validates this during the build; browser checks confirm the controls display it correctly. Keep added/deleted lines in full-file mode.
 4. Open the **final generated file**, never a template or temporary shell. If using a local preview server, serve the output directory on a confirmed free loopback port and retain the server for the delivered preview. Reuse an existing suitable server/tab rather than creating duplicates. When the user is using Whale, verify its file URL as well when tools are available.
 5. Return clickable absolute HTML and manifest file links and a brief description of the controls. For temporary output, note that the system may clear it later and that the user can request a persistent destination. State material verification limits. Keep the final response short; the walkthrough belongs in the artifact.
