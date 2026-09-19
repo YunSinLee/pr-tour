@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232563eb'/%3E%3Cpath d='M8 10h7m-7 6h16m-7 6h7' stroke='white' stroke-width='2'/%3E%3C/svg%3E">
 <title>PR #__PR_NUMBER__ · Files changed 읽기 가이드</title>
@@ -21,9 +21,7 @@
 .top-label strong{white-space:nowrap}
 @media(min-width:1600px){.workspace{--sidebar-width:240px;--guide-width:370px}.bottom-bar{grid-template-columns:240px minmax(0,1fr)}.guide{padding:30px}.diff-table{font-size:13px;line-height:26px}.diff-table td{height:26px}}
 @media(max-width:1100px){.workspace{--sidebar-width:188px;--guide-width:292px}.bottom-bar{grid-template-columns:188px minmax(0,1fr)}.guide{padding:21px 18px}.guide h2{font-size:21px}.topbar{padding:0 19px}.top-actions{gap:10px}.commit{display:none}.next-title{display:none}.sidebar-intro{padding-left:17px}.nav-step{gap:6px;padding:8px 6px}.nav-title{font-size:11px}.nav-file{font-size:9px}}
-@media(max-width:850px){body{grid-template-rows:76px minmax(0,1fr)62px}.workspace{grid-template-columns:176px minmax(0,1fr);overflow:auto;align-content:start}.sidebar{grid-column:1;grid-row:1/3;position:sticky;top:0;height:calc(100dvh - 138px)}.code-pane{grid-column:2;height:53dvh;min-height:300px}.guide{grid-column:2;overflow:visible;padding:24px}.workspace>:last-child{border-left:0;border-top:1px solid var(--line)}.bottom-bar{grid-template-columns:176px minmax(0,1fr)}.filebar{padding:14px 16px}.code-tools{padding:9px 16px}.top-label{font-size:10px}h1{font-size:15px}.top-actions .external{font-size:11px}}
-@media(max-width:590px){body{grid-template-rows:auto minmax(0,1fr)62px}.topbar{min-height:112px;padding:12px 16px;display:grid;grid-template-columns:minmax(0,1fr)auto;gap:8px 10px;align-content:center}.logo{width:30px;height:30px;font-size:15px}.identity{gap:9px}h1{font-size:13px}.top-label{font-size:9px}.top-label span{display:none}.top-actions .external{font-size:10px}.top-actions{display:contents}.top-actions>.external{grid-column:2;grid-row:1;justify-self:end}.layout-control{grid-column:2;grid-row:2;justify-self:end}.layout-control label,.mobile-step label{position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden}.layout-control select{max-width:132px}.mobile-step{display:flex;align-items:center;gap:6px;grid-column:1;grid-row:2;min-width:0}.mobile-step label{font-size:10px;color:var(--muted);white-space:nowrap}.mobile-step select{width:100%;min-width:0;border:1px solid var(--line);border-radius:5px;background:var(--bg);font-size:11px;padding:5px 7px;color:var(--ink)}.workspace{display:block;overflow:auto}.sidebar{display:none}.code-pane{height:51dvh;min-height:290px}.guide{border-left:0;padding:25px 21px}.file-path{font-size:10px}.filebar{padding:12px 14px}.code-tools{padding:9px 14px}.file-stats{font-size:10px}.filebar .external{font-size:10px}.bottom-bar{display:block}.snapshot-note{display:none}.navigation{height:100%;padding:0 13px;gap:11px}.nav-control{padding:8px 12px;font-size:11px}.progress-area{gap:8px;justify-content:center}.progress-track{width:45px}.progress-text{font-size:10px}.diff-table .line{min-width:32px;width:32px;max-width:32px;padding:0 6px}.diff-table{font-size:11px}.legend-focus{display:none}.guide h2{font-size:23px}noscript{inset:112px 0 62px}}
-.code-actions{display:flex;gap:6px;flex-shrink:0}.code-tools{flex-wrap:wrap}.code-hint{font-size:10px;color:var(--muted);margin-top:7px}.symbol-link{font:inherit;line-height:inherit;color:#245fb0;text-decoration:underline dotted #7699c8;text-underline-offset:3px;border:0;padding:0;margin:0;background:none;vertical-align:baseline;border-radius:2px}.symbol-link:hover{background:#d8e7ff;color:#16478e;text-decoration-style:solid}.gap td{background:#f3f6fb;border-block:1px solid #e0e7f1}.gap-controls{display:flex;gap:7px;align-items:center;flex-wrap:wrap;max-width:calc(100vw - 24px);position:sticky;left:0;padding:8px 12px;white-space:normal;font:11px/1.7 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}.gap-label{color:#75849b;margin-right:3px}.gap-button{font:inherit;white-space:nowrap;background:white;border:1px solid #d6e0ed;border-radius:5px;padding:3px 7px;color:#45668f}.gap-button:hover{background:var(--blue-soft)}.gap-button:disabled{opacity:.45}.definition-dialog{width:min(900px,calc(100vw - 36px));max-height:85dvh;border:1px solid #cfd9e7;border-radius:12px;padding:0;color:var(--ink);box-shadow:0 24px 90px #182b5140;background:white;overflow:hidden}.definition-dialog[open]{display:flex;flex-direction:column}.definition-dialog::backdrop{background:#12233c66}.definition-header{padding:18px 22px;border-bottom:1px solid var(--line);flex-shrink:0}.definition-top{display:flex;justify-content:space-between;align-items:center;gap:12px}.definition-top h2{font:650 16px/1.5 var(--mono);overflow-wrap:anywhere;min-width:0}.definition-actions{display:flex;gap:7px;flex-shrink:0}.definition-description{font-size:13px;color:#52657e;margin-top:10px;line-height:1.8}.definition-meta{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap;font:10px/1.7 var(--mono);color:#75849b;margin-top:9px;overflow-wrap:anywhere}.definition-meta a{color:var(--blue)}.definition-code{overflow:auto;min-height:0;padding:12px 0 22px;background:#fafbfd;overscroll-behavior:contain}.definition-code table{border-collapse:collapse;width:max-content;min-width:100%;font:12px/24px var(--mono)}.definition-code td{padding:0;vertical-align:top}.definition-code .line{color:#97a3b5;text-align:right;padding:0 16px;user-select:none;font-size:10px}.definition-code .code-cell{white-space:pre;padding-right:22px}.definition-footer{padding:9px 22px;border-top:1px solid var(--line);font-size:10px;color:var(--muted);flex-shrink:0}.definition-actions [hidden]{display:none}@media(max-width:590px){.definition-header{padding:14px}.definition-top h2{font-size:13px}.definition-actions{gap:4px}.definition-actions button{font-size:10px;padding:4px 7px}.definition-description{font-size:12px}.definition-footer{padding:8px 14px}.code-tools{gap:7px}.code-actions{margin-left:auto}.gap-controls{gap:5px;padding:6px}.gap-label{flex-basis:100%}.definition-code table{font-size:11px}}
+.code-actions{display:flex;gap:6px;flex-shrink:0}.code-tools{flex-wrap:wrap}.code-hint{font-size:10px;color:var(--muted);margin-top:7px}.symbol-link{font:inherit;line-height:inherit;color:#245fb0;text-decoration:underline dotted #7699c8;text-underline-offset:3px;border:0;padding:0;margin:0;background:none;vertical-align:baseline;border-radius:2px}.symbol-link:hover{background:#d8e7ff;color:#16478e;text-decoration-style:solid}.gap td{background:#f3f6fb;border-block:1px solid #e0e7f1}.gap-controls{display:flex;gap:7px;align-items:center;flex-wrap:wrap;max-width:calc(100vw - 24px);position:sticky;left:0;padding:8px 12px;white-space:normal;font:11px/1.7 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}.gap-label{color:#75849b;margin-right:3px}.gap-button{font:inherit;white-space:nowrap;background:white;border:1px solid #d6e0ed;border-radius:5px;padding:3px 7px;color:#45668f}.gap-button:hover{background:var(--blue-soft)}.gap-button:disabled{opacity:.45}.definition-dialog{width:min(900px,calc(100vw - 36px));max-height:85dvh;border:1px solid #cfd9e7;border-radius:12px;padding:0;color:var(--ink);box-shadow:0 24px 90px #182b5140;background:white;overflow:hidden}.definition-dialog[open]{display:flex;flex-direction:column}.definition-dialog::backdrop{background:#12233c66}.definition-header{padding:18px 22px;border-bottom:1px solid var(--line);flex-shrink:0}.definition-top{display:flex;justify-content:space-between;align-items:center;gap:12px}.definition-top h2{font:650 16px/1.5 var(--mono);overflow-wrap:anywhere;min-width:0}.definition-actions{display:flex;gap:7px;flex-shrink:0}.definition-description{font-size:13px;color:#52657e;margin-top:10px;line-height:1.8}.definition-meta{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap;font:10px/1.7 var(--mono);color:#75849b;margin-top:9px;overflow-wrap:anywhere}.definition-meta a{color:var(--blue)}.definition-code{overflow:auto;min-height:0;padding:12px 0 22px;background:#fafbfd;overscroll-behavior:contain}.definition-code table{border-collapse:collapse;width:max-content;min-width:100%;font:12px/24px var(--mono)}.definition-code td{padding:0;vertical-align:top}.definition-code .line{color:#97a3b5;text-align:right;padding:0 16px;user-select:none;font-size:10px}.definition-code .code-cell{white-space:pre;padding-right:22px}.definition-footer{padding:9px 22px;border-top:1px solid var(--line);font-size:10px;color:var(--muted);flex-shrink:0}.definition-actions [hidden]{display:none}
 /* Dark foregrounds remain readable on context, addition, deletion, and focus backgrounds. */
 .code-cell .hljs-keyword,.code-cell .hljs-selector-tag,.code-cell .hljs-doctag{color:#a02362}
 .code-cell .hljs-string,.code-cell .hljs-regexp,.code-cell .hljs-meta .hljs-string{color:#155b38}
@@ -34,6 +32,57 @@
 .code-cell .hljs-meta,.code-cell .hljs-tag,.code-cell .hljs-name,.code-cell .hljs-selector-id,.code-cell .hljs-selector-class{color:#075b9a}
 .code-cell .hljs-subst{color:var(--ink)}.code-cell .hljs-emphasis{font-style:italic}.code-cell .hljs-strong{font-weight:700}
 .code-cell .symbol-link{color:inherit}.code-cell .symbol-link:hover{color:inherit}
+.mobile-panes,.wrap-control{display:none}
+.workspace>[hidden]{display:none!important}
+/* Keep this breakpoint in sync with mobileQuery below. Include phone landscape. */
+@media(max-width:850px),(max-width:950px) and (max-height:500px){
+  body{height:100%;height:100dvh;grid-template-rows:auto minmax(0,1fr) auto}
+  .topbar{min-height:0;padding:8px max(12px,env(safe-area-inset-right)) 8px max(12px,env(safe-area-inset-left));padding-top:max(8px,env(safe-area-inset-top));display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 10px}
+  .identity{gap:8px}.identity>div:last-child{min-width:0}.logo{width:30px;height:30px;font-size:15px}
+  h1{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.top-label{font-size:10px}.top-label span{display:none}
+  .top-actions{display:contents}.top-actions>.external{grid-column:2;grid-row:1;font-size:10px;justify-self:end;padding-block:10px}
+  .layout-control,.commit{display:none}
+  .mobile-step{display:flex;grid-column:1;grid-row:2;min-width:0}
+  .mobile-step label{position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden}
+  .mobile-step select{width:100%;min-width:0;height:44px;border:1px solid var(--line);border-radius:7px;background:var(--bg);padding:0 8px;font-size:16px;color:var(--ink)}
+  .mobile-panes{display:flex;grid-column:2;grid-row:2;border:1px solid var(--line);border-radius:7px;background:var(--bg);padding:2px;gap:2px}
+  .pane-tab{min-width:60px;min-height:44px;border:0;border-radius:5px;background:none;color:var(--muted);font-size:13px;font-weight:650;padding:5px 10px}
+  .pane-tab[aria-selected=true]{background:white;color:var(--blue);box-shadow:0 1px 4px #202b3c18}
+  .workspace{display:block;overflow:hidden;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+  .sidebar{display:none}.workspace>:last-child{border:0}
+  .guide{height:100%;overflow:auto;border:0;padding:22px 20px 32px}.guide h2{font-size:23px}
+  .why{font-size:14px}.note-body{font-size:13px}.reference summary{min-height:24px}
+  .code-pane{height:100%;min-height:0;border:0}.filebar{padding:10px 12px}.filebar-top{margin-bottom:4px}
+  .file-path{font-size:12px}.file-stats,.filebar .external{font-size:10px}.legend-focus{display:none}.code-hint{font-size:11px;margin-top:4px}
+  .code-tools{padding:8px 12px;gap:6px}.focus-label{width:100%}.focus-label strong{font-size:12px}
+  .code-actions{margin:0;gap:6px;flex-wrap:wrap}.focus-back{font-size:12px;min-height:44px;padding:8px}
+  .wrap-control{display:inline-block}.wrap-control[aria-pressed=true]{background:var(--blue-soft);border-color:#a9c3f5;color:var(--blue)}
+  .diff-table{font-size:13px;line-height:28px}.diff-table td{height:28px}
+  .diff-table .line{min-width:30px;width:30px;max-width:30px;padding:0 4px}.diff-table .sign{min-width:18px;width:18px}
+  .gap-controls{gap:6px;padding:8px;max-width:calc(100vw - 24px - env(safe-area-inset-left) - env(safe-area-inset-right))}
+  .gap-label{flex-basis:100%}.gap-button{min-height:44px;padding:8px;font-size:12px}
+  body[data-wrap=true] .diff-table,body[data-wrap=true] .definition-code table{width:100%;table-layout:fixed}
+  body[data-wrap=true] .code-cell{white-space:pre-wrap;overflow-wrap:anywhere;min-width:0;padding-right:10px}
+  body[data-wrap=true] .diff-table col.line-column{width:30px}
+  body[data-wrap=true] .diff-table col.sign-column{width:18px}
+  body[data-wrap=true] .definition-code col.line-column{width:44px}
+  .bottom-bar{display:block;padding:8px max(12px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+  .snapshot-note{display:none}.navigation{height:auto;padding:0;gap:10px}.nav-control{min-height:44px;font-size:13px;padding:8px 12px}
+  .progress-area{gap:8px;justify-content:center}.progress-track{width:36px}.progress-text{font-size:11px}
+  .definition-dialog{width:calc(100% - 16px - env(safe-area-inset-left) - env(safe-area-inset-right));height:calc(100% - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));max-height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));margin:auto;border-radius:10px}
+  .definition-header{padding:12px;max-height:45%;overflow:auto}.definition-top{flex-wrap:wrap;gap:8px}.definition-top h2{font-size:14px;flex:1}
+  .definition-actions{gap:6px}.definition-actions button{min-height:44px;font-size:12px;padding:8px}
+  .definition-description{font-size:13px;margin-top:8px}.definition-code{flex:1}.definition-code table{font-size:13px;line-height:28px}
+  .definition-code .line{padding:0 10px}.definition-footer{padding:8px 12px}.desktop-hint{display:none}
+  noscript{inset:0}
+}
+@media(min-width:540px) and (max-width:950px) and (max-height:500px){
+  .topbar{grid-template-columns:minmax(0,1fr) minmax(160px,1fr) auto;gap:8px}
+  .mobile-step{grid-column:2;grid-row:1}.mobile-panes{grid-column:3;grid-row:1}.top-actions>.external{display:none}
+  .filebar{padding-block:6px}.filebar-bottom,.code-hint{display:none}.filebar-top{margin:0}
+  .code-tools{padding-block:4px;flex-wrap:nowrap}.focus-label{width:auto}.code-actions{flex-wrap:nowrap}
+  .bottom-bar{padding-top:4px;padding-bottom:max(4px,env(safe-area-inset-bottom))}
+}
 </style>
 </head>
 <body>
@@ -41,6 +90,7 @@
   <div class="identity"><div class="logo" aria-hidden="true">±</div><div><div class="top-label"><strong>PR #__PR_NUMBER__</strong><span>FILES CHANGED · 읽기 가이드</span></div><h1>__PR_TITLE__</h1></div></div>
   <div class="top-actions"><div class="layout-control"><label for="layout-select">화면 배치</label><select id="layout-select"><option value="code-last">설명 → 코드</option><option value="code-first">코드 → 설명</option></select></div><span class="commit" title="이 HTML에 담긴 코드의 커밋">__SHORT_HEAD__ · 고정된 diff</span><a class="external" href="__PR_URL__/files" target="_blank" rel="noopener noreferrer">GitHub Files changed ↗</a></div>
   <div class="mobile-step"><label for="step-select">읽는 구간</label><select id="step-select"></select></div>
+  <div class="mobile-panes" role="tablist" aria-label="읽기 화면"><button type="button" class="pane-tab" id="guide-tab" role="tab" aria-controls="guide" aria-selected="true">설명</button><button type="button" class="pane-tab" id="code-tab" role="tab" aria-controls="code-pane" aria-selected="false" tabindex="-1">코드</button></div>
 </header>
 <main class="workspace" id="workspace" data-layout="code-last">
   <aside class="sidebar" aria-label="실행 흐름에 따른 읽기 순서">
@@ -50,13 +100,13 @@
   <aside class="guide" id="guide" aria-label="현재 구간 설명과 리뷰 포인트"></aside>
   <section class="code-pane" id="code-pane" aria-label="현재 파일의 변경 코드와 생략 구간">
     <div class="filebar"><div class="filebar-top"><span class="file-symbol" aria-hidden="true">⌘</span><h2 class="file-path" id="file-path"></h2></div><div class="filebar-bottom"><div class="file-stats"><span id="file-added" class="plus"></span><span id="file-removed" class="minus"></span><span id="context-state">변경 구간</span><span class="legend-focus"><i aria-hidden="true"></i>현재 읽는 줄</span></div><a class="external" id="source-link" target="_blank" rel="noopener noreferrer">이 커밋의 원본 코드 ↗</a></div><p class="code-hint">점선이 있는 이름을 누르면 정의가 열립니다. · 생략된 코드는 아래에서 펼칠 수 있습니다.</p></div>
-    <div class="code-tools"><div class="focus-label"><strong id="focus-lines"></strong><span id="focus-title"></span></div><div class="code-actions"><button type="button" class="focus-back" id="show-context" aria-pressed="false">전체 파일 보기</button><button type="button" class="focus-back" id="focus-back">강조한 줄로 이동 ↓</button></div></div>
-    <div class="diff-scroll" id="diff-scroll" tabindex="0" aria-label="코드 diff, 세로 및 가로로 스크롤 가능"><table class="diff-table"><caption class="sr-only" id="diff-caption"></caption><thead class="sr-only"><tr><th>이전 줄</th><th>변경 후 줄</th><th>변경</th><th>코드</th></tr></thead><tbody id="diff-body"></tbody></table></div>
+    <div class="code-tools"><div class="focus-label"><strong id="focus-lines"></strong><span id="focus-title"></span></div><div class="code-actions"><button type="button" class="focus-back" id="show-context" aria-pressed="false">전체 파일 보기</button><button type="button" class="focus-back wrap-control" id="wrap-code" aria-pressed="false">줄바꿈</button><button type="button" class="focus-back" id="focus-back">강조한 줄로 이동 ↓</button></div></div>
+    <div class="diff-scroll" id="diff-scroll" tabindex="0" aria-label="코드 diff, 세로 및 가로로 스크롤 가능"><table class="diff-table"><caption class="sr-only" id="diff-caption"></caption><colgroup><col class="line-column"><col class="line-column"><col class="sign-column"><col></colgroup><thead class="sr-only"><tr><th>이전 줄</th><th>변경 후 줄</th><th>변경</th><th>코드</th></tr></thead><tbody id="diff-body"></tbody></table></div>
   </section>
 </main>
 <footer class="bottom-bar"><div class="snapshot-note">__TOTAL_FILES__개 파일 · <span class="plus">+__ADDITIONS__</span> <span class="minus">−__DELETIONS__</span><br>__DATE__ · __SHORT_HEAD__</div><div class="navigation"><button type="button" class="nav-control" id="previous">← 이전</button><div class="progress-area"><div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progress-fill"></div></div><span class="progress-text" id="progress-text"></span><span class="next-title" id="next-title"></span></div><button type="button" class="nav-control primary" id="next">다음 →</button></div></footer>
 <div class="status-live" id="status-live" role="status" aria-live="polite"></div>
-<dialog id="definition-dialog" class="definition-dialog" aria-labelledby="definition-title" aria-describedby="definition-description"><div class="definition-header"><div class="definition-top"><h2 id="definition-title"></h2><div class="definition-actions"><button type="button" class="focus-back" id="definition-back" hidden>← 이전 정의</button><button type="button" class="focus-back" id="definition-close" autofocus>닫기 ×</button></div></div><p class="definition-description" id="definition-description"></p><div class="definition-meta"><span id="definition-location"></span><a id="definition-source" target="_blank" rel="noopener noreferrer">이 커밋의 원본 ↗</a></div></div><div id="definition-code" class="definition-code" tabindex="0" aria-label="정의 코드"><table><tbody id="definition-body"></tbody></table></div><div class="definition-footer"><span id="definition-version">PR 커밋 __SHORT_HEAD__</span> 기준 · 점선 이름으로 관련 정의를 이어서 볼 수 있습니다. · Esc로 닫기</div></dialog>
+<dialog id="definition-dialog" class="definition-dialog" aria-labelledby="definition-title" aria-describedby="definition-description"><div class="definition-header"><div class="definition-top"><h2 id="definition-title"></h2><div class="definition-actions"><button type="button" class="focus-back" id="definition-back" hidden>← 이전 정의</button><button type="button" class="focus-back" id="definition-close" autofocus>닫기 ×</button></div></div><p class="definition-description" id="definition-description"></p><div class="definition-meta"><span id="definition-location"></span><a id="definition-source" target="_blank" rel="noopener noreferrer">이 커밋의 원본 ↗</a></div></div><div id="definition-code" class="definition-code" tabindex="0" aria-label="정의 코드"><table><colgroup><col class="line-column"><col></colgroup><tbody id="definition-body"></tbody></table></div><div class="definition-footer"><span id="definition-version">PR 커밋 __SHORT_HEAD__</span> 기준 · 점선 이름으로 관련 정의를 이어서 볼 수 있습니다.<span class="desktop-hint"> · Esc로 닫기</span></div></dialog>
 <noscript>이 가이드는 파일에 포함된 JavaScript로 구간을 전환합니다. JavaScript를 허용하는 브라우저에서 이 HTML을 열어 주세요.</noscript>
 <script type="application/json" id="guide-data">__GUIDE_DATA__</script>
 <script>__SYNTAX_ASSETS__</script>
@@ -74,12 +124,37 @@
   const highlightedDefinitions = new Set();
   const definitionHistory = [];
   const layoutStorageKey = 'pr-tour.layout';
+  const mobileQuery = window.matchMedia('(max-width:850px), (max-width:950px) and (max-height:500px)');
+  let mobilePane = 'guide';
+  let pendingFocus = false;
+  const paneScroll = {guide: 0, code: 0, left: 0};
 
   let savedLayout = 'code-last';
   try { savedLayout = localStorage.getItem(layoutStorageKey) || savedLayout; } catch {}
   setLayout(savedLayout);
 
   buildNavigation();
+  ['guide', 'code'].forEach(pane => {
+    el(`${pane}-tab`).addEventListener('click', () => setMobilePane(pane));
+    el(`${pane}-tab`).addEventListener('keydown', event => {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+      event.preventDefault();
+      const target = event.key === 'Home' ? 'guide' : event.key === 'End' ? 'code' : pane === 'guide' ? 'code' : 'guide';
+      setMobilePane(target);
+      el(`${target}-tab`).focus();
+    });
+  });
+  mobileQuery.addEventListener('change', () => {
+    savePaneScroll();
+    applyMobileView();
+  });
+  applyMobileView();
+  el('wrap-code').addEventListener('click', () => {
+    const wrap = el('wrap-code').getAttribute('aria-pressed') !== 'true';
+    document.body.dataset.wrap = String(wrap);
+    el('wrap-code').setAttribute('aria-pressed', String(wrap));
+    scrollToFocus();
+  });
   el('layout-select').addEventListener('change', event => {
     const layout = setLayout(event.target.value);
     try { localStorage.setItem(layoutStorageKey, layout); } catch {}
@@ -98,6 +173,49 @@
   dismissOnBackdropClick(el('definition-dialog'));
   window.addEventListener('hashchange', readHash);
   readHash();
+
+  function savePaneScroll() {
+    if (!el('guide').hidden) paneScroll.guide = el('guide').scrollTop;
+    if (!el('code-pane').hidden) {
+      paneScroll.code = el('diff-scroll').scrollTop;
+      paneScroll.left = el('diff-scroll').scrollLeft;
+    }
+  }
+
+  function setMobilePane(pane) {
+    savePaneScroll();
+    mobilePane = pane;
+    applyMobileView();
+  }
+
+  function applyMobileView() {
+    const mobile = mobileQuery.matches;
+    const active = document.activeElement;
+    ['guide', 'code'].forEach(pane => {
+      const panel = el(pane === 'guide' ? 'guide' : 'code-pane');
+      const selected = pane === mobilePane;
+      panel.hidden = mobile && !selected;
+      if (mobile) {
+        panel.setAttribute('role', 'tabpanel');
+        panel.setAttribute('aria-labelledby', `${pane}-tab`);
+        panel.tabIndex = 0;
+      } else {
+        panel.removeAttribute('role');
+        panel.removeAttribute('aria-labelledby');
+        panel.removeAttribute('tabindex');
+      }
+      el(`${pane}-tab`).setAttribute('aria-selected', String(selected));
+      el(`${pane}-tab`).tabIndex = selected ? 0 : -1;
+    });
+    el('guide').scrollTop = paneScroll.guide;
+    el('diff-scroll').scrollTop = paneScroll.code;
+    el('diff-scroll').scrollLeft = paneScroll.left;
+    if (pendingFocus && !el('code-pane').hidden) scrollToFocus();
+    // A breakpoint change must not leave keyboard focus in a hidden panel/tab.
+    if (active && active !== document.body && !active.getClientRects().length) {
+      el(mobile ? `${mobilePane}-tab` : 'diff-scroll').focus({preventScroll: true});
+    }
+  }
 
   function dismissOnBackdropClick(dialog) {
     let startedOnBackdrop = false;
@@ -184,6 +302,7 @@
   }
 
   function renderStep(index) {
+    if (mobileQuery.matches) setMobilePane('guide');
     current = index;
     const step = steps[index];
     document.title = `${index + 1}. ${step.title} · PR #__PR_NUMBER__ 읽기 가이드`;
@@ -203,6 +322,7 @@
     el('next-title').textContent = steps[index + 1] ? `다음 · ${steps[index + 1].title}` : '모든 변경 파일을 따라왔습니다.';
     el('status-live').textContent = `${index + 1}/${steps.length}, ${step.title}, ${step.file}`;
     el('guide').scrollTop = 0;
+    paneScroll.guide = 0;
     el('workspace').scrollTop = 0;
     const navButton = document.querySelector('.nav-step[aria-current="step"]');
     const nav = el('step-nav');
@@ -398,7 +518,12 @@
       top.append(make('span', 'note-title', note.title), make('span', 'note-line', lineLabel(note)));
       button.append(top, make('p', 'note-body', note.text));
       button.addEventListener('click', () => {
+        if (mobileQuery.matches) setMobilePane('code');
         focusNote(noteIndex);
+        if (mobileQuery.matches) {
+          el('diff-scroll').focus({preventScroll: true});
+          return;
+        }
         const workspace = el('workspace');
         if (workspace.scrollHeight > workspace.clientHeight) {
           workspace.scrollTop += el('code-pane').getBoundingClientRect().top - workspace.getBoundingClientRect().top;
@@ -443,6 +568,8 @@
     const step = steps[current];
     const note = step.notes[index];
     if (!note) {
+      pendingFocus = false;
+      paneScroll.code = 0;
       const file = data.files[step.file];
       el('focus-lines').textContent = '파일 변경';
       el('focus-title').textContent = step.title;
@@ -469,11 +596,16 @@
   }
 
   function scrollToFocus() {
+    if (el('code-pane').hidden) {
+      pendingFocus = true;
+      return;
+    }
+    pendingFocus = false;
     const row = el('diff-body').querySelector('tr.focus');
     if (!row) return;
     const scroll = el('diff-scroll');
     const top = row.getBoundingClientRect().top - scroll.getBoundingClientRect().top + scroll.scrollTop;
-    scroll.scrollTop = Math.max(0, top - 72);
+    scroll.scrollTop = Math.max(0, top - (mobileQuery.matches ? 28 : 72));
   }
 
   function lineLabel(note) {
