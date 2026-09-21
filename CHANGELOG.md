@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.6.0 — 2026-09-21
 
 - Add reader comments on individual source lines or ranges, with touch-sized selection controls and a mobile bottom-sheet editor.
 - Edit, delete/undo, and revisit comments, including collapsed context and old paths in renamed files.
