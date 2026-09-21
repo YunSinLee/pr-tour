@@ -32,7 +32,8 @@
 .code-cell .hljs-meta,.code-cell .hljs-tag,.code-cell .hljs-name,.code-cell .hljs-selector-id,.code-cell .hljs-selector-class{color:#075b9a}
 .code-cell .hljs-subst{color:var(--ink)}.code-cell .hljs-emphasis{font-style:italic}.code-cell .hljs-strong{font-weight:700}
 .code-cell .symbol-link{color:inherit}.code-cell .symbol-link:hover{color:inherit}
-.mobile-panes,.wrap-control{display:none}
+.mobile-panes,.wrap-control,.reader-control{display:none}
+.code-menu{display:flex;gap:6px}.code-menu[hidden]{display:none}
 .workspace>[hidden]{display:none}
 /* Keep this breakpoint in sync with mobileQuery below. Include phone landscape. */
 @media(max-width:850px),(max-width:950px) and (max-height:500px){
@@ -52,12 +53,15 @@
   .sidebar{display:none}.workspace>:last-child{border:0}
   .guide{height:100%;overflow:auto;border:0;padding:22px 20px 32px}.guide h2{font-size:23px}
   .why{font-size:14px}.note-body{font-size:13px}.reference summary{min-height:24px}
-  .code-pane{height:100%;min-height:0;border:0}.filebar{padding:10px 12px}.filebar-top{margin-bottom:4px}
-  .file-path{font-size:12px}.file-stats,.filebar .external{font-size:10px}.legend-focus{display:none}.code-hint{font-size:11px;margin-top:4px}
-  .code-tools{padding:8px 12px;gap:6px}.focus-label{width:100%}.focus-label strong{font-size:12px}
-  .code-actions{margin:0;gap:6px;flex-wrap:wrap}.focus-back{font-size:12px;min-height:44px;padding:8px}
+  .code-pane{height:100%;min-height:0;border:0}.filebar{padding:6px 12px}.filebar-top{margin:0}
+  .file-path{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.filebar-bottom,.code-hint{display:none}
+  .code-tools{position:relative;padding:6px 12px;gap:8px;flex-wrap:nowrap}.focus-label{flex:1;display:block;overflow:hidden}.focus-label strong{font-size:12px}.focus-label span{display:block;font-size:11px}
+  .code-actions{margin:0;gap:6px}.focus-back{font-size:12px;min-height:44px;padding:8px}
+  .reader-control{display:inline-block}#code-menu-toggle{min-width:44px;font-size:20px;padding:0 8px}#show-guide{display:none}
+  .code-menu{position:absolute;z-index:3;right:12px;top:calc(100% - 2px);display:flex;flex-direction:column;gap:4px;width:min(280px,calc(100vw - 24px));max-height:calc(100dvh - 260px);overflow:auto;padding:8px;background:white;border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px #202b3c26}
+  .code-menu .focus-back{width:100%;text-align:left;border-color:transparent}.code-menu .external{padding:8px;font-size:12px;min-height:44px;color:var(--blue)}.menu-hint{padding:8px;font-size:11px;color:var(--muted);line-height:1.7}
   .wrap-control{display:inline-block}.wrap-control[aria-pressed=true]{background:var(--blue-soft);border-color:#a9c3f5;color:var(--blue)}
-  .diff-table{font-size:13px;line-height:28px}.diff-table td{height:28px}
+  .diff-table{font-size:13px;line-height:28px;margin-bottom:var(--focus-tail,0px)}.diff-table td{height:28px}
   .diff-table .line{min-width:30px;width:30px;max-width:30px;padding:0 4px}.diff-table .sign{min-width:18px;width:18px}
   .gap-controls{gap:6px;padding:8px;max-width:calc(100vw - 24px - env(safe-area-inset-left) - env(safe-area-inset-right))}
   .gap-label{flex-basis:100%}.gap-button{min-height:44px;padding:8px;font-size:12px}
@@ -69,6 +73,14 @@
   .bottom-bar{display:block;padding:8px max(12px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
   .snapshot-note{display:none}.navigation{height:auto;padding:0;gap:10px}.nav-control{min-height:44px;font-size:13px;padding:8px 12px}
   .progress-area{gap:8px;justify-content:center}.progress-track{width:36px}.progress-text{font-size:11px}
+  body[data-mobile-pane=code] .progress-track{display:none}
+  body[data-mobile-pane=code] .navigation{gap:6px}
+  body[data-mobile-pane=code] .nav-control{padding-inline:8px;font-size:12px}
+  body[data-code-expanded=true]{grid-template-rows:minmax(0,1fr) auto}
+  body[data-code-expanded=true] .topbar{display:none}
+  body[data-code-expanded=true] .filebar{padding-top:max(6px,env(safe-area-inset-top))}
+  body[data-code-expanded=true] #show-guide{display:inline-block}
+  body[data-code-expanded=true] .code-menu{max-height:calc(100dvh - 170px)}
   .definition-dialog{width:calc(100% - 16px - env(safe-area-inset-left) - env(safe-area-inset-right));height:calc(100% - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));max-height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));margin:auto;border-radius:10px}
   .definition-header{padding:12px;max-height:45%;overflow:auto}.definition-top{flex-wrap:wrap;gap:8px}.definition-top h2{font-size:14px;flex:1}
   .definition-actions{gap:6px}.definition-actions button{min-height:44px;font-size:12px;padding:8px}
@@ -100,7 +112,7 @@
   <aside class="guide" id="guide" aria-label="현재 구간 설명과 리뷰 포인트"></aside>
   <section class="code-pane" id="code-pane" aria-label="현재 파일의 변경 코드와 생략 구간">
     <div class="filebar"><div class="filebar-top"><span class="file-symbol" aria-hidden="true">⌘</span><h2 class="file-path" id="file-path"></h2></div><div class="filebar-bottom"><div class="file-stats"><span id="file-added" class="plus"></span><span id="file-removed" class="minus"></span><span id="context-state">변경 구간</span><span class="legend-focus"><i aria-hidden="true"></i>현재 읽는 줄</span></div><a class="external" id="source-link" target="_blank" rel="noopener noreferrer">이 커밋의 원본 코드 ↗</a></div><p class="code-hint">점선이 있는 이름을 누르면 정의가 열립니다. · 생략된 코드는 아래에서 펼칠 수 있습니다.</p></div>
-    <div class="code-tools"><div class="focus-label"><strong id="focus-lines"></strong><span id="focus-title"></span></div><div class="code-actions"><button type="button" class="focus-back" id="show-context" aria-pressed="false">전체 파일 보기</button><button type="button" class="focus-back wrap-control" id="wrap-code" aria-pressed="false">줄바꿈</button><button type="button" class="focus-back" id="focus-back">강조한 줄로 이동 ↓</button></div></div>
+    <div class="code-tools"><div class="focus-label"><strong id="focus-lines"></strong><span id="focus-title"></span></div><div class="code-actions"><button type="button" class="focus-back reader-control" id="show-guide">설명 보기</button><button type="button" class="focus-back reader-control" id="expand-code" aria-pressed="false">크게 보기</button><button type="button" class="focus-back reader-control" id="code-menu-toggle" aria-label="코드 도구" aria-expanded="false" aria-controls="code-menu">⋯</button><div class="code-menu" id="code-menu" role="group" aria-label="코드 도구"><button type="button" class="focus-back" id="show-context" aria-pressed="false">전체 파일 보기</button><button type="button" class="focus-back wrap-control" id="wrap-code" aria-pressed="false">줄바꿈</button><button type="button" class="focus-back" id="focus-back">강조한 줄로 이동 ↓</button><a class="external reader-control" id="mobile-source-link" target="_blank" rel="noopener noreferrer">이 커밋의 원본 코드 ↗</a><p class="menu-hint reader-control">점선이 있는 이름을 누르면 정의가 열립니다. · 생략된 코드는 아래에서 펼칠 수 있습니다.</p></div></div></div>
     <div class="diff-scroll" id="diff-scroll" tabindex="0" aria-label="코드 diff, 세로 및 가로로 스크롤 가능"><table class="diff-table"><caption class="sr-only" id="diff-caption"></caption><colgroup><col class="line-column"><col class="line-column"><col class="sign-column"><col></colgroup><thead class="sr-only"><tr><th>이전 줄</th><th>변경 후 줄</th><th>변경</th><th>코드</th></tr></thead><tbody id="diff-body"></tbody></table></div>
   </section>
 </main>
@@ -1513,6 +1525,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = TourSyntax
   const layoutStorageKey = 'pr-tour.layout';
   const mobileQuery = window.matchMedia('(max-width:850px), (max-width:950px) and (max-height:500px)');
   let mobilePane = 'guide';
+  let codeExpanded = false;
+  let codeMenuOpen = false;
   let pendingFocus = false;
   const paneScroll = {guide: 0, code: 0, left: 0};
 
@@ -1533,6 +1547,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = TourSyntax
   });
   mobileQuery.addEventListener('change', () => {
     savePaneScroll();
+    codeExpanded = false;
+    pendingFocus = true;
     applyMobileView();
   });
   applyMobileView();
@@ -1547,11 +1563,38 @@ if (typeof module !== 'undefined' && module.exports) module.exports = TourSyntax
     try { localStorage.setItem(layoutStorageKey, layout); } catch {}
     el('status-live').textContent = layout === 'code-last' ? '설명 다음에 코드를 표시합니다.' : '코드 다음에 설명을 표시합니다.';
   });
-  el('previous').addEventListener('click', () => chooseStep(current - 1));
-  el('next').addEventListener('click', () => chooseStep(current + 1));
+  el('previous').addEventListener('click', () => navigate(-1));
+  el('next').addEventListener('click', () => navigate(1));
   el('step-select').addEventListener('change', event => chooseStep(Number(event.target.value)));
   el('focus-back').addEventListener('click', scrollToFocus);
   el('show-context').addEventListener('click', toggleContext);
+  el('expand-code').addEventListener('click', () => setCodeExpanded(!codeExpanded));
+  el('show-guide').addEventListener('click', () => {
+    setMobilePane('guide');
+    const note = el('guide').querySelector('.note-button[aria-pressed=true]');
+    if (note) {
+      note.scrollIntoView({block: 'center'});
+      note.focus({preventScroll: true});
+    }
+  });
+  el('code-menu-toggle').addEventListener('click', () => setCodeMenu(!codeMenuOpen));
+  el('code-menu').addEventListener('click', event => {
+    if (event.target.closest('button, a') && mobileQuery.matches) setCodeMenu(false);
+  });
+  document.addEventListener('click', event => {
+    if (codeMenuOpen && !event.target.closest('#code-menu, #code-menu-toggle')) setCodeMenu(false);
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape' || el('definition-dialog').open) return;
+    if (codeMenuOpen) {
+      event.preventDefault();
+      setCodeMenu(false);
+    } else if (mobileQuery.matches && mobilePane === 'code' && codeExpanded) {
+      event.preventDefault();
+      setCodeExpanded(false);
+      el('expand-code').focus({preventScroll: true});
+    }
+  });
   el('definition-close').addEventListener('click', () => el('definition-dialog').close());
   el('definition-back').addEventListener('click', () => {
     definitionHistory.pop();
@@ -1578,6 +1621,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = TourSyntax
   function applyMobileView() {
     const mobile = mobileQuery.matches;
     const active = document.activeElement;
+    document.body.dataset.mobilePane = mobilePane;
+    document.body.dataset.codeExpanded = String(mobile && mobilePane === 'code' && codeExpanded);
+    el('expand-code').setAttribute('aria-pressed', String(codeExpanded));
+    el('expand-code').textContent = codeExpanded ? '작게 보기' : '크게 보기';
+    setCodeMenu(false);
     ['guide', 'code'].forEach(pane => {
       const panel = el(pane === 'guide' ? 'guide' : 'code-pane');
       const selected = pane === mobilePane;
@@ -1600,8 +1648,25 @@ if (typeof module !== 'undefined' && module.exports) module.exports = TourSyntax
     if (pendingFocus && !el('code-pane').hidden) scrollToFocus();
     // A breakpoint change must not leave keyboard focus in a hidden panel/tab.
     if (active && active !== document.body && !active.getClientRects().length) {
-      el(mobile ? `${mobilePane}-tab` : 'diff-scroll').focus({preventScroll: true});
+      el(mobile && !(mobilePane === 'code' && codeExpanded) ? `${mobilePane}-tab` : 'diff-scroll').focus({preventScroll: true});
     }
+    if (current >= 0) updateNavigation();
+  }
+
+  function setCodeExpanded(expanded) {
+    savePaneScroll();
+    codeExpanded = expanded;
+    applyMobileView();
+    scrollToFocus();
+  }
+
+  function setCodeMenu(open) {
+    codeMenuOpen = mobileQuery.matches && open;
+    const menu = el('code-menu');
+    const restoreFocus = !codeMenuOpen && menu.contains(document.activeElement);
+    menu.hidden = mobileQuery.matches && !codeMenuOpen;
+    el('code-menu-toggle').setAttribute('aria-expanded', String(codeMenuOpen));
+    if (restoreFocus && mobileQuery.matches) el('code-menu-toggle').focus({preventScroll: true});
   }
 
   function dismissOnBackdropClick(dialog) {
@@ -1676,20 +1741,52 @@ if (typeof module !== 'undefined' && module.exports) module.exports = TourSyntax
     });
   }
 
-  function chooseStep(index) {
+  function chooseStep(index, noteIndex = 0) {
     if (index < 0 || index >= steps.length) return;
+    // Render immediately so repeated taps navigate from the newly selected point.
     if (location.hash !== `#${steps[index].id}`) location.hash = steps[index].id;
-    else renderStep(index);
+    renderStep(index, noteIndex);
+  }
+
+  function navigate(direction) {
+    if (mobileQuery.matches && mobilePane === 'code') {
+      const nextNote = activeNote + direction;
+      if (nextNote >= 0 && nextNote < Math.max(1, steps[current].notes.length)) {
+        focusNote(nextNote);
+        return;
+      }
+      const nextStep = current + direction;
+      if (nextStep < 0 || nextStep >= steps.length) return;
+      chooseStep(nextStep, direction < 0 ? Math.max(0, steps[nextStep].notes.length - 1) : 0);
+    } else {
+      chooseStep(current + direction);
+    }
+  }
+
+  function updateNavigation() {
+    const codeMode = mobileQuery.matches && mobilePane === 'code';
+    const total = codeMode ? steps.reduce((count, step) => count + Math.max(1, step.notes.length), 0) : steps.length;
+    const position = codeMode ? steps.slice(0, current).reduce((count, step) => count + Math.max(1, step.notes.length), 0) + activeNote + 1 : current + 1;
+    el('previous').textContent = codeMode ? '← 이전 코드' : '← 이전';
+    el('next').textContent = codeMode ? '다음 코드 →' : '다음 →';
+    el('previous').disabled = position === 1;
+    el('next').disabled = position === total;
+    el('progress-text').textContent = `${String(position).padStart(2, '0')} / ${total}`;
+    el('progress-text').setAttribute('aria-label', codeMode ? `코드 포인트 ${position} / ${total}` : `읽는 구간 ${position} / ${total}`);
+    el('progress-fill').style.width = `${position / total * 100}%`;
+    el('next-title').textContent = steps[current + 1] ? `다음 · ${steps[current + 1].title}` : '모든 변경 파일을 따라왔습니다.';
   }
 
   function readHash() {
     const id = location.hash.slice(1);
     const index = steps.findIndex(step => step.id === id);
+    // chooseStep already rendered this hash, including the requested note.
+    if (index === current) return;
     renderStep(index < 0 ? 0 : index);
   }
 
-  function renderStep(index) {
-    if (mobileQuery.matches) setMobilePane('guide');
+  function renderStep(index, noteIndex = 0) {
+    setCodeMenu(false);
     current = index;
     const step = steps[index];
     document.title = `${index + 1}. ${step.title} · PR #2041 읽기 가이드`;
@@ -1701,13 +1798,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = TourSyntax
     el('step-select').value = String(index);
     renderFile(step.file);
     renderGuide(step, index);
-    focusNote(0);
-    el('previous').disabled = index === 0;
-    el('next').disabled = index === steps.length - 1;
-    el('progress-text').textContent = `${String(index + 1).padStart(2, '0')} / ${steps.length}`;
-    el('progress-fill').style.width = `${(index + 1) / steps.length * 100}%`;
-    el('next-title').textContent = steps[index + 1] ? `다음 · ${steps[index + 1].title}` : '모든 변경 파일을 따라왔습니다.';
-    el('status-live').textContent = `${index + 1}/${steps.length}, ${step.title}, ${step.file}`;
+    focusNote(noteIndex);
     el('guide').scrollTop = 0;
     paneScroll.guide = 0;
     el('workspace').scrollTop = 0;
@@ -1953,8 +2044,13 @@ if (typeof module !== 'undefined' && module.exports) module.exports = TourSyntax
 
   function focusNote(index) {
     activeNote = index;
+    el('diff-scroll').scrollLeft = 0;
+    paneScroll.left = 0;
     const step = steps[current];
     const note = step.notes[index];
+    updateNavigation();
+    el('status-live').textContent = `${current + 1}/${steps.length}, ${step.title}, ${step.file}${note ? `, ${lineLabel(note)}, ${note.title}` : ''}`;
+    el('focus-title').title = note ? note.title : step.title;
     if (!note) {
       pendingFocus = false;
       paneScroll.code = 0;
@@ -1962,6 +2058,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = TourSyntax
       el('focus-lines').textContent = '파일 변경';
       el('focus-title').textContent = step.title;
       el('source-link').href = sourceUrl(file.status === 'D' ? file.oldPath : step.file, null, null, file.status === 'D' ? 'left' : 'right');
+      el('mobile-source-link').href = el('source-link').href;
       markFocus();
       el('diff-scroll').scrollTop = 0;
       return;
@@ -1971,6 +2068,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = TourSyntax
     el('focus-lines').textContent = lineLabel(note);
     el('focus-title').textContent = note.title;
     el('source-link').href = sourceUrl(note.side === 'left' ? data.files[step.file].oldPath : step.file, note.start, note.end, note.side);
+    el('mobile-source-link').href = el('source-link').href;
     requestAnimationFrame(scrollToFocus);
   }
 
@@ -1992,6 +2090,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = TourSyntax
     const row = el('diff-body').querySelector('tr.focus');
     if (!row) return;
     const scroll = el('diff-scroll');
+    // Let even the last source line reach the top of the mobile reading area.
+    if (mobileQuery.matches) el('diff-body').closest('table').style.setProperty('--focus-tail', `${Math.max(0, scroll.clientHeight - 56)}px`);
     const top = row.getBoundingClientRect().top - scroll.getBoundingClientRect().top + scroll.scrollTop;
     scroll.scrollTop = Math.max(0, top - (mobileQuery.matches ? 28 : 72));
   }

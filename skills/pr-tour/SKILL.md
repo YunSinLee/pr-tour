@@ -13,7 +13,7 @@ On desktop, the generated HTML has three panes: reading order, explanation with 
 
 - Navigate by code flow, with previous/next buttons and hash links. A file may appear in several steps.
 - On desktop, let readers switch explanation/code order with the Layout selector. Default to explanation before code, retain the browser preference when storage is available, and keep reading state when switching.
-- On mobile, keep the reading position of each tab. Selecting a note opens its focused code; changing steps returns to the guide. Preserve optional code wrapping, larger controls, and the expanded definition preview.
+- On mobile, keep the selected tab when changing steps and preserve each tab's reading position. In Code, previous/next follow individual notes across steps and scroll their lines into view; in Guide and on desktop, they move by step. Preserve expanded code reading with access to the current explanation, the compact tools menu (wrapping, full file, focus, source), larger controls, and the expanded definition preview.
 - Show old/new line numbers, additions/deletions, and the lines for the selected explanation.
 - Preserve the bundled offline syntax highlighting in diffs, expanded context, and definition previews. Unsupported extensions fall back to plain text; syntax colors do not imply symbol resolution.
 - Expand omitted unchanged code from either end by 20 lines, reveal a whole gap, or show the whole file and collapse back.

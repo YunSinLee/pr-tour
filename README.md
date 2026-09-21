@@ -73,9 +73,10 @@ For example: `Save the guide and manifest in ~/Documents/pr-tours/starlette-2041
 ## What the guide does
 
 - Arranges changes by code flow. A file can appear in more than one step.
-- Shows the explanation before the code by default. Use **Layout** to switch the two panes; the browser remembers your choice when local storage is available. On phones and narrow screens, **Guide / Code** tabs show one pane at a time and keep your reading position. Selecting a note opens its focused code; moving to another step returns to the guide.
+- Shows the explanation before the code by default. Use **Layout** to switch the two panes; the browser remembers your choice when local storage is available. On phones and narrow screens, **Guide / Code** tabs show one pane at a time and keep your reading position. Selecting a note opens its focused code; changing steps keeps the current tab.
 - Shows actual additions, deletions, old/new line numbers, and focused line notes.
-- Offers optional line wrapping on mobile, larger navigation controls, and a definition preview that fills most of the screen. Phone landscape uses a compact header.
+- On mobile, **Next code / Prev code** follow each note across steps and bring its lines into view. **Expand** gives code more room; **Guide** opens the current explanation, and selecting a note returns to expanded code. The **⋯** tools contain line wrapping, full-file context, jump to focus, and the source link. Guide and desktop navigation still move by step.
+- Offers larger mobile navigation controls and a definition preview that fills most of the screen. Phone landscape uses a compact header.
 - Colors keywords, strings, comments, and function names in diffs and definition previews. Syntax highlighting works offline for common languages; unsupported file types remain plain text.
 - Expands unchanged context from either end, or displays the complete file.
 - Opens selected function and type definitions, including related definitions and a back button.

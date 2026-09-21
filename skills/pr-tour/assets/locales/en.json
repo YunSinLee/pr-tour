@@ -76,5 +76,12 @@
   "설명": "Guide",
   "줄바꿈": "Wrap lines",
   " 기준 · 점선 이름으로 관련 정의를 이어서 볼 수 있습니다.": " · Follow underlined names to related definitions.",
-  " · Esc로 닫기": " · Esc to close"
+  " · Esc로 닫기": " · Esc to close",
+  "← 이전 코드": "← Prev code",
+  "다음 코드 →": "Next code →",
+  "코드 포인트": "Code point",
+  "코드 도구": "Code tools",
+  "설명 보기": "Guide",
+  "크게 보기": "Expand",
+  "작게 보기": "Collapse"
 }
