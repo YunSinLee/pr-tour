@@ -1,6 +1,6 @@
 {
   "name": "pr-tour",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Turn a GitHub PR into a standalone HTML walkthrough with real diffs and definition previews.",
   "author": {
     "name": "Yun Sin Lee",
@@ -10,7 +10,7 @@
   "interface": {
     "displayName": "PR Tour",
     "shortDescription": "Read pull requests in code-flow order.",
-    "longDescription": "Build a standalone HTML guide with the real Git diff, focused line notes, expandable context and selected function/type definitions. Korean and English controls.",
+    "longDescription": "Build a standalone HTML guide with the real Git diff, focused line notes, expandable context and selected function/type definitions. Follow code points on mobile with an expanded reading view. Korean and English controls.",
     "developerName": "Yun Sin Lee",
     "category": "Productivity",
     "capabilities": [],
