@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Add reader comments on individual source lines or ranges, with touch-sized selection controls and a mobile bottom-sheet editor.
+- Edit, delete/undo, and revisit comments, including collapsed context and old paths in renamed files.
+- Keep saved comments in browser storage per PR snapshot, showing storage failures; preserve dismissed editor drafts for the current page session.
+- Copy or download JSON containing pinned commits, source paths, sides, exact selected source, and feedback. Provide manual copying when clipboard access is blocked.
+- Document comment use, storage limits, and the export schema, and test offline use, source fidelity, persistence, snapshot isolation, and mobile layouts in both languages.
+
 ## 0.5.0 — 2026-09-21
 
 - Keep the mobile code view open while previous/next follows each note across steps and scrolls to its lines.

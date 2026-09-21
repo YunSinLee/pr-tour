@@ -109,6 +109,19 @@ For example: `Save the guide and manifest in ~/Documents/pr-tours/starlette-2041
 
 Step links use `#step-id` and open that step's first note; individual notes do not add browser-history entries. Guide and desktop previous/next navigation moves by step.
 
+## Leave comments on code
+
+1. Open **Comments → Comment on current code**, or **Add comment** in the code tools. You can also start by clicking a line number.
+2. Select one line, then another line on the same side to select a range. Base and head lines are separate. On mobile, the line-number targets grow while selecting.
+3. Choose **Write comment**, enter your feedback, and **Save**. Edit or delete it in the list, with an undo action immediately after deletion. Click a location to return to its lines, including collapsed context.
+4. **Copy for AI** copies all comments as JSON; **Download JSON** saves a file. When clipboard access is blocked, a selectable text box provides manual copying.
+
+The export includes the PR URL, pinned commits, source paths, base/head side, line ranges, selected source text, and comments. Paste it into your AI conversation and ask which feedback to evaluate or apply. PR Tour does not send it to an AI service or post GitHub comments. See the [review export format](skills/pr-tour/references/review-comments.md).
+
+<img src="docs/comments.en.jpg" width="320" alt="Mobile comment editor with selected source lines and an example question">
+
+Saved comments live in **this browser's storage**, separated by PR and source snapshot. They do not modify the HTML or sync between devices or browsers. Storage can be restricted for local files and embedded viewers. Check the displayed storage status and download JSON for durable retention or sharing. JSON import is not supported yet. Unsaved editor text can be reopened only while the same page stays open.
+
 ## Requirements and limits
 
 To make a guide: an agent that supports skills, Python 3.9+, Git, and access to the repository. The preferred GitHub workflow also uses the authenticated `gh` CLI. Python tokenization may require a newer interpreter for newer source syntax.
@@ -146,7 +159,7 @@ Run syntax-rendering regression tests with Node.js 20+ (no package installation)
 node --test tests/test_syntax.cjs
 ```
 
-Run browser regression tests for mobile reading and definition previews in both demos (Node.js 20+):
+Run browser regression tests for mobile reading, definition previews, and comments in both demos (Node.js 20+):
 
 ```sh
 npm ci
