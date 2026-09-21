@@ -64,6 +64,23 @@ async function useCodeTool(page, selector) {
 }
 
 for (const language of ['en', 'ko']) {
+  test(`${language}: plain URLs and unknown fragments open the first step and allow navigation`, async () => {
+    await withGuide(language, async page => {
+      const url = page.url().split('#')[0];
+      for (const fragment of ['', '#missing-step']) {
+        await page.goto('about:blank');
+        await page.goto(url + fragment);
+        await page.locator('#step-heading').waitFor({state: 'visible'});
+        assert.equal(await page.locator('#step-select').inputValue(), '0');
+        assert.equal(await page.locator('#previous').isDisabled(), true);
+        await page.locator('#next').tap();
+        await page.waitForURL('**#entry');
+        await page.locator('#code-tab').tap();
+        await assertFocusedLinesVisible(page);
+      }
+    });
+  });
+
   test(`${language}: code navigation includes steps without notes and distinguishes old/new lines`, async () => {
     await withGuide(language, async page => {
       await page.locator('#code-tab').tap();

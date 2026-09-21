@@ -1781,7 +1781,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = TourSyntax
     const id = location.hash.slice(1);
     const index = steps.findIndex(step => step.id === id);
     // chooseStep already rendered this hash, including the requested note.
-    if (index === current) return;
+    if (index >= 0 && index === current) return;
     renderStep(index < 0 ? 0 : index);
   }
 
