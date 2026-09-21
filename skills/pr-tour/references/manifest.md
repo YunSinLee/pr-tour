@@ -50,6 +50,8 @@ Every changed file must occur in at least one step. There is no fixed number of 
 
 Notes require `title,start,end,text`. `side` defaults to `right`, or `left` for a deleted file. Set `side: "left"` to explain removed lines within a modified file. Note ranges must be present in the initially visible diff, including context rows. A note cannot cross a hidden gap.
 
+The order of `steps` and each step's `notes` is the mobile code-reading order; notes are not sorted by line number. Write them in the order a reader should follow. Mobile **Next code / Prev code** visits each note, then continues across steps. A step with no notes remains one file-change stop. Step hashes (`#step-id`) open the first note of that step; individual notes do not have separate hashes. No extra manifest fields are needed for mobile layout, wrapping, or expanded reading.
+
 For helpful code outside the diff, add a definition or an optional step `reference`:
 
 ```json
@@ -90,6 +92,8 @@ Optional `recap` is an array of concise strings describing observed validation a
 ## Regeneration and checks
 
 Pass an unused output path for a new artifact, or `--overwrite` for an intentional update. The script's final JSON reports the actual output path, pinned head, file/step/definition counts, HTML size, unavailable previews, and source verification. Resolve any error before delivering. Keep the JSON manifest as the editable source of the guide; no credentials or session cookies belong in it.
+
+Updating the skill does not alter previously generated HTML. Rebuild from its manifest with the updated builder to get the new renderer; preserve the pinned commits and snapshot date unless the user requests a refreshed PR snapshot.
 
 ## Source attribution
 

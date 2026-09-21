@@ -47,6 +47,21 @@ Invoke `/pr-tour:pr-tour`, or ask Claude Code to make an HTML walkthrough of a P
 
 This repository provides an installable skill and a Claude Code marketplace. Inclusion in any third-party curated registry is a separate process.
 
+### Update an existing installation
+
+For a skills CLI installation, run `npx skills update pr-tour` and choose the scope you installed into. See the [CLI update options](https://github.com/vercel-labs/skills#skills-update).
+
+For the Claude Code marketplace installation, run these commands in your terminal (use the original installation scope if it was not `user`):
+
+```sh
+claude plugin marketplace update pr-tour
+claude plugin update pr-tour@pr-tour --scope user
+```
+
+Then restart Claude Code or follow its plugin reload prompt. See the [plugin update reference](https://code.claude.com/docs/en/plugins-reference#plugin-update). For a manual installation, replace your installed `pr-tour` skill folder with the latest `skills/pr-tour/` from this repository.
+
+Already-generated HTML files keep their embedded renderer. To apply an update, regenerate the HTML with the updated skill and the saved manifest, preserving the pinned commits. Use `--overwrite` only for the file you intend to replace. See the [changelog](CHANGELOG.md) for release details.
+
 ## Use it
 
 In Codex, inside the relevant repository:
@@ -73,14 +88,26 @@ For example: `Save the guide and manifest in ~/Documents/pr-tours/starlette-2041
 ## What the guide does
 
 - Arranges changes by code flow. A file can appear in more than one step.
-- Shows the explanation before the code by default. Use **Layout** to switch the two panes; the browser remembers your choice when local storage is available. On phones and narrow screens, **Guide / Code** tabs show one pane at a time and keep your reading position. Selecting a note opens its focused code; moving to another step returns to the guide.
+- Shows the explanation before the code by default. Use **Layout** to switch the two panes; the browser remembers your choice when local storage is available. On phones and narrow screens, **Guide / Code** tabs show one pane at a time and keep your reading position. Selecting a note opens its focused code; changing steps keeps the current tab.
 - Shows actual additions, deletions, old/new line numbers, and focused line notes.
-- Offers optional line wrapping on mobile, larger navigation controls, and a definition preview that fills most of the screen. Phone landscape uses a compact header.
+- On mobile, **Next code / Prev code** follow each note across steps and bring its lines into view. **Expand** gives code more room; **Guide** opens the current explanation, and selecting a note returns to expanded code. The **⋯** tools contain line wrapping, full-file context, jump to focus, and the source link. Guide and desktop navigation still move by step.
+- Offers larger mobile navigation controls and a definition preview that fills most of the screen. Phone landscape uses a compact header.
 - Colors keywords, strings, comments, and function names in diffs and definition previews. Syntax highlighting works offline for common languages; unsupported file types remain plain text.
 - Expands unchanged context from either end, or displays the complete file.
 - Opens selected function and type definitions, including related definitions and a back button.
 - Keeps explanations, source, styles, and scripts in one HTML file.
 - Generates Korean or English controls. Authored explanations keep their own language.
+
+## Read on mobile
+
+1. Choose a step, then tap an explanation note to open its code. **Guide / Code** tabs keep their reading positions.
+2. Use **Next code / Prev code** to follow notes in authored order, including the next or previous step. The selected line moves near the top, even at the end of a file. The footer counts code points; the step picker still counts steps. Steps without notes remain reachable as file changes.
+3. Tap **Expand** for more code space. **Guide** opens the current note; tapping that note returns to expanded code. **Collapse** restores the header.
+4. Open **⋯** for **Wrap lines**, full-file context, jump to focus, or the source link. Wrapping changes the display only. Tap outside or press Escape to close the tools; Escape closes an open definition before leaving expanded reading.
+
+<img src="docs/mobile.en.jpg" width="320" alt="Expanded mobile code view with Guide, Collapse, code tools, and previous/next code controls">
+
+Step links use `#step-id` and open that step's first note; individual notes do not add browser-history entries. Guide and desktop previous/next navigation moves by step.
 
 ## Requirements and limits
 
@@ -88,13 +115,15 @@ To make a guide: an agent that supports skills, Python 3.9+, Git, and access to 
 
 To read a guide: a modern browser with JavaScript enabled. No Python, agent, or account is required. An in-app artifact viewer must allow the embedded JavaScript to run.
 
+The demos are tested offline in Chromium and WebKit, with narrow portrait, tablet, and phone-landscape viewports. These are browser tests, not physical-device or Orca artifact-viewer verification.
+
 The builder checks source reconstruction, line ranges, file coverage, and definition-link offsets. Explanations and symbol meanings still need review. Definition links are authored mappings, not an IDE language server. Every changed file must appear, but the builder cannot prove that every important behavior has been explained. Binary, non-UTF-8, and submodule changes show an explicit preview limitation.
 
 Generated guides include repository source code. Choose an example you can share before publishing its HTML. The bundled example uses public Starlette code and includes its license notice.
 
 ## Build and contribute
 
-Read the [manifest format](skills/pr-tour/references/manifest.md), then run:
+Read the [skill workflow](skills/pr-tour/SKILL.md) and [manifest format](skills/pr-tour/references/manifest.md), then run:
 
 ```sh
 python3 skills/pr-tour/scripts/build_guide.py \
@@ -140,4 +169,4 @@ Contributions are welcome for reading usability, source-link correctness, and ad
 
 [MIT](LICENSE) for this skill, builder, renderer, and authored explanations. Starlette source embedded in the examples retains its [BSD-3-Clause license](examples/STARLETTE-LICENSE.md). This is an independent example, not an endorsement by Starlette.
 
-The bundled highlight.js library retains its [BSD-3-Clause license](skills/pr-tour/assets/vendor/highlightjs/LICENSE), which is also embedded in generated guides.
+The bundled highlight.js library retains its [BSD-3-Clause license](skills/pr-tour/assets/vendor/highlightjs/LICENSE), which is also embedded in generated guides. See its [maintenance notes](skills/pr-tour/assets/vendor/highlightjs/README.md) for the pinned version and update checks.

@@ -11,8 +11,11 @@ terms; the builder also embeds that notice in each generated HTML.
 - License SHA-256: `6c081431591d9df696c82dc598fe1423765b8a299b200ed00b281afd0f64c490`
 
 To update, replace the bundle and license from a pinned official release, update
-the version and hashes here and in `build_guide.py`, run both test suites, and
-rebuild the examples. Keep the license notice when redistributing the bundle.
+the version and hashes here and the embedded version in
+[`build_guide.py`](../../../scripts/build_guide.py). Run the builder and syntax
+tests plus the browser tests in Chromium and WebKit, and rebuild the examples.
+The repository [build instructions](../../../../../README.md#build-and-contribute)
+list the commands. Keep the license notice when redistributing the bundle.
 
 Language selection uses file extensions in `assets/syntax.js`. Unsupported files
 remain plain text. Tokenization is separate from authored definition links and
