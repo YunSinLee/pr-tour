@@ -113,7 +113,7 @@ HTML에는 저장소 코드가 포함됩니다. 공개할 때는 공유 가능�
 
 ## 개발과 기여
 
-[manifest 형식](skills/pr-tour/references/manifest.md)에 따라 설명을 작성한 뒤 실행합니다.
+[스킬 작업 흐름](skills/pr-tour/SKILL.md)을 확인하고 [manifest 형식](skills/pr-tour/references/manifest.md)에 따라 설명을 작성한 뒤 실행합니다.
 
 ```sh
 python3 skills/pr-tour/scripts/build_guide.py \
@@ -152,4 +152,4 @@ PR_TOUR_BROWSER=webkit npm run test:browser
 
 스킬·빌더·뷰어·직접 작성한 설명은 [MIT](LICENSE)입니다. 예제에 포함한 Starlette 코드는 원래의 [BSD-3-Clause 라이선스](examples/STARLETTE-LICENSE.md)를 따릅니다. Starlette의 공식 추천이나 보증을 의미하지 않습니다.
 
-동봉된 highlight.js는 [BSD-3-Clause 라이선스](skills/pr-tour/assets/vendor/highlightjs/LICENSE)를 따르며, 생성된 HTML에도 해당 고지를 포함합니다.
+동봉된 highlight.js는 [BSD-3-Clause 라이선스](skills/pr-tour/assets/vendor/highlightjs/LICENSE)를 따르며, 생성된 HTML에도 해당 고지를 포함합니다. 사용 중인 버전과 업데이트 검증 절차는 [유지관리 문서](skills/pr-tour/assets/vendor/highlightjs/README.md)에 있습니다.

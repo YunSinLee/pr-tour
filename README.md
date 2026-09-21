@@ -123,7 +123,7 @@ Generated guides include repository source code. Choose an example you can share
 
 ## Build and contribute
 
-Read the [manifest format](skills/pr-tour/references/manifest.md), then run:
+Read the [skill workflow](skills/pr-tour/SKILL.md) and [manifest format](skills/pr-tour/references/manifest.md), then run:
 
 ```sh
 python3 skills/pr-tour/scripts/build_guide.py \
@@ -169,4 +169,4 @@ Contributions are welcome for reading usability, source-link correctness, and ad
 
 [MIT](LICENSE) for this skill, builder, renderer, and authored explanations. Starlette source embedded in the examples retains its [BSD-3-Clause license](examples/STARLETTE-LICENSE.md). This is an independent example, not an endorsement by Starlette.
 
-The bundled highlight.js library retains its [BSD-3-Clause license](skills/pr-tour/assets/vendor/highlightjs/LICENSE), which is also embedded in generated guides.
+The bundled highlight.js library retains its [BSD-3-Clause license](skills/pr-tour/assets/vendor/highlightjs/LICENSE), which is also embedded in generated guides. See its [maintenance notes](skills/pr-tour/assets/vendor/highlightjs/README.md) for the pinned version and update checks.
