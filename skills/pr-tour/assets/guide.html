@@ -95,12 +95,13 @@
   .code-tools{padding-block:4px;flex-wrap:nowrap}.focus-label{width:auto}.code-actions{flex-wrap:nowrap}
   .bottom-bar{padding-top:4px;padding-bottom:max(4px,env(safe-area-inset-bottom))}
 }
+__REVIEW_CSS__
 </style>
 </head>
 <body>
 <header class="topbar">
   <div class="identity"><div class="logo" aria-hidden="true">±</div><div><div class="top-label"><strong>PR #__PR_NUMBER__</strong><span>FILES CHANGED · 읽기 가이드</span></div><h1>__PR_TITLE__</h1></div></div>
-  <div class="top-actions"><div class="layout-control"><label for="layout-select">화면 배치</label><select id="layout-select"><option value="code-last">설명 → 코드</option><option value="code-first">코드 → 설명</option></select></div><span class="commit" title="이 HTML에 담긴 코드의 커밋">__SHORT_HEAD__ · 고정된 diff</span><a class="external" href="__PR_URL__/files" target="_blank" rel="noopener noreferrer">GitHub Files changed ↗</a></div>
+  <div class="top-actions"><button type="button" class="review-open" id="review-open" aria-haspopup="dialog">코멘트 (0)</button><div class="layout-control"><label for="layout-select">화면 배치</label><select id="layout-select"><option value="code-last">설명 → 코드</option><option value="code-first">코드 → 설명</option></select></div><span class="commit" title="이 HTML에 담긴 코드의 커밋">__SHORT_HEAD__ · 고정된 diff</span><a class="external" href="__PR_URL__/files" target="_blank" rel="noopener noreferrer">GitHub Files changed ↗</a></div>
   <div class="mobile-step"><label for="step-select">읽는 구간</label><select id="step-select"></select></div>
   <div class="mobile-panes" role="tablist" aria-label="읽기 화면"><button type="button" class="pane-tab" id="guide-tab" role="tab" aria-controls="guide" aria-selected="true">설명</button><button type="button" class="pane-tab" id="code-tab" role="tab" aria-controls="code-pane" aria-selected="false" tabindex="-1">코드</button></div>
 </header>
@@ -112,13 +113,36 @@
   <aside class="guide" id="guide" aria-label="현재 구간 설명과 리뷰 포인트"></aside>
   <section class="code-pane" id="code-pane" aria-label="현재 파일의 변경 코드와 생략 구간">
     <div class="filebar"><div class="filebar-top"><span class="file-symbol" aria-hidden="true">⌘</span><h2 class="file-path" id="file-path"></h2></div><div class="filebar-bottom"><div class="file-stats"><span id="file-added" class="plus"></span><span id="file-removed" class="minus"></span><span id="context-state">변경 구간</span><span class="legend-focus"><i aria-hidden="true"></i>현재 읽는 줄</span></div><a class="external" id="source-link" target="_blank" rel="noopener noreferrer">이 커밋의 원본 코드 ↗</a></div><p class="code-hint">점선이 있는 이름을 누르면 정의가 열립니다. · 생략된 코드는 아래에서 펼칠 수 있습니다.</p></div>
-    <div class="code-tools"><div class="focus-label"><strong id="focus-lines"></strong><span id="focus-title"></span></div><div class="code-actions"><button type="button" class="focus-back reader-control" id="show-guide">설명 보기</button><button type="button" class="focus-back reader-control" id="expand-code" aria-pressed="false">크게 보기</button><button type="button" class="focus-back reader-control" id="code-menu-toggle" aria-label="코드 도구" aria-expanded="false" aria-controls="code-menu">⋯</button><div class="code-menu" id="code-menu" role="group" aria-label="코드 도구"><button type="button" class="focus-back" id="show-context" aria-pressed="false">전체 파일 보기</button><button type="button" class="focus-back wrap-control" id="wrap-code" aria-pressed="false">줄바꿈</button><button type="button" class="focus-back" id="focus-back">강조한 줄로 이동 ↓</button><a class="external reader-control" id="mobile-source-link" target="_blank" rel="noopener noreferrer">이 커밋의 원본 코드 ↗</a><p class="menu-hint reader-control">점선이 있는 이름을 누르면 정의가 열립니다. · 생략된 코드는 아래에서 펼칠 수 있습니다.</p></div></div></div>
+    <div class="code-tools"><div class="focus-label"><strong id="focus-lines"></strong><span id="focus-title"></span></div><div class="code-actions"><button type="button" class="focus-back reader-control" id="show-guide">설명 보기</button><button type="button" class="focus-back reader-control" id="expand-code" aria-pressed="false">크게 보기</button><button type="button" class="focus-back reader-control" id="code-menu-toggle" aria-label="코드 도구" aria-expanded="false" aria-controls="code-menu">⋯</button><div class="code-menu" id="code-menu" role="group" aria-label="코드 도구"><button type="button" class="focus-back" id="review-add">코멘트 추가</button><button type="button" class="focus-back reader-control" id="review-menu-open" aria-haspopup="dialog">코멘트 (0)</button><button type="button" class="focus-back" id="show-context" aria-pressed="false">전체 파일 보기</button><button type="button" class="focus-back wrap-control" id="wrap-code" aria-pressed="false">줄바꿈</button><button type="button" class="focus-back" id="focus-back">강조한 줄로 이동 ↓</button><a class="external reader-control" id="mobile-source-link" target="_blank" rel="noopener noreferrer">이 커밋의 원본 코드 ↗</a><p class="menu-hint reader-control">점선이 있는 이름을 누르면 정의가 열립니다. · 생략된 코드는 아래에서 펼칠 수 있습니다.</p></div></div></div>
+    <div id="review-selection" class="review-selection" hidden><span id="review-selection-label" role="status"></span><button type="button" id="review-write" disabled>메모 쓰기</button><button type="button" id="review-cancel-selection">선택 취소</button></div>
     <div class="diff-scroll" id="diff-scroll" tabindex="0" aria-label="코드 diff, 세로 및 가로로 스크롤 가능"><table class="diff-table"><caption class="sr-only" id="diff-caption"></caption><colgroup><col class="line-column"><col class="line-column"><col class="sign-column"><col></colgroup><thead class="sr-only"><tr><th>이전 줄</th><th>변경 후 줄</th><th>변경</th><th>코드</th></tr></thead><tbody id="diff-body"></tbody></table></div>
   </section>
 </main>
 <footer class="bottom-bar"><div class="snapshot-note">__TOTAL_FILES__개 파일 · <span class="plus">+__ADDITIONS__</span> <span class="minus">−__DELETIONS__</span><br>__DATE__ · __SHORT_HEAD__</div><div class="navigation"><button type="button" class="nav-control" id="previous">← 이전</button><div class="progress-area"><div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progress-fill"></div></div><span class="progress-text" id="progress-text"></span><span class="next-title" id="next-title"></span></div><button type="button" class="nav-control primary" id="next">다음 →</button></div></footer>
 <div class="status-live" id="status-live" role="status" aria-live="polite"></div>
 <dialog id="definition-dialog" class="definition-dialog" aria-labelledby="definition-title" aria-describedby="definition-description"><div class="definition-header"><div class="definition-top"><h2 id="definition-title"></h2><div class="definition-actions"><button type="button" class="focus-back" id="definition-back" hidden>← 이전 정의</button><button type="button" class="focus-back" id="definition-close" autofocus>닫기 ×</button></div></div><p class="definition-description" id="definition-description"></p><div class="definition-meta"><span id="definition-location"></span><a id="definition-source" target="_blank" rel="noopener noreferrer">이 커밋의 원본 ↗</a></div></div><div id="definition-code" class="definition-code" tabindex="0" aria-label="정의 코드"><table><colgroup><col class="line-column"><col></colgroup><tbody id="definition-body"></tbody></table></div><div class="definition-footer"><span id="definition-version">PR 커밋 __SHORT_HEAD__</span> 기준 · 점선 이름으로 관련 정의를 이어서 볼 수 있습니다.<span class="desktop-hint"> · Esc로 닫기</span></div></dialog>
+<dialog id="review-dialog" class="review-dialog" aria-labelledby="review-title">
+<header class="review-header"><h2 id="review-title">리뷰 코멘트</h2><button type="button" id="review-close" autofocus>닫기 ×</button></header>
+<div class="review-content">
+  <section id="review-list"><button type="button" id="review-add-from-list">현재 코드에 코멘트</button><div id="review-items"></div></section>
+  <section id="review-editor" hidden><p id="review-location" class="review-editor-location"></p><pre id="review-code" class="review-code"></pre><label for="review-text">코멘트</label><textarea id="review-text" maxlength="10000" placeholder="궁금한 점이나 수정 의견을 남겨주세요."></textarea><div class="review-editor-actions"><button type="button" id="review-cancel-edit">취소</button><button type="button" class="primary" id="review-save">저장</button></div></section>
+  <section id="review-export" hidden><label for="review-export-text">자동 복사가 제한되어 있습니다. 아래 JSON을 직접 복사하세요.</label><textarea id="review-export-text" readonly spellcheck="false"></textarea><button type="button" id="review-export-back">목록으로</button></section>
+  <section id="review-import" hidden>
+    <p class="review-import-hint">이 가이드에서 내보낸 JSON을 선택하거나 붙여넣으세요. 파일은 서버로 전송되지 않습니다.</p>
+    <button type="button" id="review-import-file-button">JSON 파일 선택</button><input type="file" id="review-import-file" accept=".json,application/json" hidden><span id="review-import-filename"></span>
+    <label for="review-import-text">JSON 내용</label><textarea id="review-import-text" maxlength="10485760" spellcheck="false"></textarea>
+    <p id="review-import-error" role="alert"></p>
+    <button type="button" id="review-import-check">내용 확인</button>
+    <div id="review-import-preview" hidden>
+      <p id="review-import-summary" role="status"></p>
+      <div id="review-import-conflict-options" hidden><label for="review-import-policy">같은 코멘트가 서로 다르게 수정된 경우</label><select id="review-import-policy"><option value="keep">기존 코멘트 유지</option><option value="replace">가져온 코멘트로 교체</option></select><div id="review-import-conflicts"></div></div>
+      <button type="button" class="primary" id="review-import-apply">가져오기</button>
+    </div>
+    <div class="review-editor-actions"><button type="button" id="review-import-cancel">목록으로</button></div>
+  </section>
+  <div id="review-exports" class="review-exports"><button type="button" class="primary" id="review-copy">AI에 복사</button><button type="button" id="review-download">JSON 다운로드</button><button type="button" id="review-import-open">JSON 불러오기</button></div>
+</div><footer class="review-footer"><div id="review-feedback" role="status"></div><p id="review-storage" role="status"></p></footer>
+</dialog>
 <noscript>이 가이드는 파일에 포함된 JavaScript로 구간을 전환합니다. JavaScript를 허용하는 브라우저에서 이 HTML을 열어 주세요.</noscript>
 <script type="application/json" id="guide-data">__GUIDE_DATA__</script>
 <script>__SYNTAX_ASSETS__</script>
@@ -129,6 +153,7 @@
   const steps = data.steps;
   const el = id => document.getElementById(id);
   let current = -1;
+  let review = null;
   let activeFile = '';
   let activeNote = 0;
   const contextStates = new Map();
@@ -198,7 +223,7 @@
     if (codeMenuOpen && !event.target.closest('#code-menu, #code-menu-toggle')) setCodeMenu(false);
   });
   document.addEventListener('keydown', event => {
-    if (event.key !== 'Escape' || el('definition-dialog').open) return;
+    if (event.key !== 'Escape' || document.querySelector('dialog[open]')) return;
     if (codeMenuOpen) {
       event.preventDefault();
       setCodeMenu(false);
@@ -214,6 +239,9 @@
     renderDefinition(definitionHistory[definitionHistory.length - 1]);
   });
   dismissOnBackdropClick(el('definition-dialog'));
+  review = TourReview.init({data, currentFile: () => steps[current < 0 ? 0 : current].file,
+    showCode: () => { if (mobileQuery.matches) setMobilePane('code'); }, reveal: revealComment});
+  dismissOnBackdropClick(el('review-dialog'));
   window.addEventListener('hashchange', readHash);
   readHash();
 
@@ -399,6 +427,7 @@
   }
 
   function renderStep(index, noteIndex = 0) {
+    review?.cancelSelection();
     setCodeMenu(false);
     current = index;
     const step = steps[index];
@@ -474,14 +503,17 @@
     el('show-context').disabled = !gaps.length;
     el('show-context').setAttribute('aria-pressed', String(!hidden));
     markFocus();
+    review?.refresh();
   }
 
   function codeRow(row) {
     const tr = make('tr', row.kind);
     if (row.new !== null) tr.dataset.line = String(row.new);
     if (row.old !== null) tr.dataset.oldLine = String(row.old);
-    tr.append(make('td', 'line line-old', row.old === null ? '' : String(row.old)),
-              make('td', 'line line-new', row.new === null ? '' : String(row.new)),
+    const oldCell = make('td', 'line line-old'), newCell = make('td', 'line line-new');
+    oldCell.append(review.lineButton(row.old, 'left'));
+    newCell.append(review.lineButton(row.new, 'right'));
+    tr.append(oldCell, newCell,
               make('td', 'sign', row.kind === 'add' ? '+' : row.kind === 'del' ? '−' : ' '),
               codeCell(row));
     return tr;
@@ -656,6 +688,7 @@
   }
 
   function focusNote(index) {
+    review?.cancelSelection();
     activeNote = index;
     el('diff-scroll').scrollLeft = 0;
     paneScroll.left = 0;
@@ -712,6 +745,43 @@
   function lineLabel(note) {
     const range = note.start === note.end ? `L${note.start}` : `L${note.start}–${note.end}`;
     return note.side === 'left' ? `이전 ${range}` : range;
+  }
+
+  function revealComment(comment) {
+    const related = steps.findIndex(step => step.file === comment.file && step.notes.some(note => note.side === comment.side && note.start <= comment.end && note.end >= comment.start));
+    chooseStep(related >= 0 ? related : steps.findIndex(step => step.file === comment.file));
+    if (mobileQuery.matches) setMobilePane('code');
+    const column = comment.side === 'left' ? 'old' : 'new';
+    data.files[comment.file].rows.filter(row => row.kind === 'gap').forEach(gap => {
+      if (gap.lines.some(row => row[column] >= comment.start && row[column] <= comment.end)) {
+        Object.assign(gapState(gap), {top: gap.lines.length, bottom: 0});
+      }
+    });
+    renderRows();
+    // Wait until the step's scheduled focus scroll has run, then reveal the comment.
+    requestAnimationFrame(() => {
+      const scroll = el('diff-scroll');
+      const attr = comment.side === 'left' ? 'oldLine' : 'line';
+      const rows = [...el('diff-body').querySelectorAll('tr')];
+      el('diff-body').closest('table').dataset.focusSide = comment.side;
+      rows.forEach(row => {
+        const selected = Number(row.dataset[attr]) >= comment.start && Number(row.dataset[attr]) <= comment.end;
+        row.classList.toggle('review-selected', selected);
+        row.classList.toggle('focus', selected);
+      });
+      el('focus-lines').textContent = lineLabel(comment);
+      el('focus-title').textContent = comment.body;
+      el('focus-title').title = comment.body;
+      el('source-link').href = sourceUrl(comment.side === 'left' ? data.files[comment.file].oldPath : comment.file, comment.start, comment.end, comment.side);
+      el('mobile-source-link').href = el('source-link').href;
+      const row = rows.find(row => Number(row.dataset[attr]) === comment.start);
+      if (row) {
+        el('diff-body').closest('table').style.setProperty('--focus-tail', `${Math.max(0, scroll.clientHeight - 56)}px`);
+        scroll.scrollLeft = 0;
+        scroll.scrollTop += row.getBoundingClientRect().top - scroll.getBoundingClientRect().top - 28;
+        row.querySelector(comment.side === 'left' ? '.line-old button' : '.line-new button')?.focus({preventScroll: true});
+      }
+    });
   }
 
   function sourceUrl(path, start, end, side = 'right') {

@@ -379,6 +379,8 @@ def check_range(spec, length, label):
 
 
 def render(template, data):
+    assets = Path(__file__).resolve().parents[1] / 'assets'
+    template = template.replace('__REVIEW_CSS__', (assets / 'review.css').read_text(encoding='utf-8'))
     template = localize(template, data.get('language', 'ko'))
     template = template.replace('<html lang="ko">', f'<html lang="{data.get("language", "ko")}">')
     values = {'PR_NUMBER': data['number'], 'PR_TITLE': data['title'], 'PR_URL': data['url'],
@@ -391,12 +393,12 @@ def render(template, data):
     require(template.count('__SYNTAX_ASSETS__') == 1, 'Missing syntax asset slot')
     require(not re.search(r'__[A-Z_]+__', template.replace('__GUIDE_DATA__', '').replace('__SYNTAX_ASSETS__', '')),
             'Unresolved template token')
-    assets = Path(__file__).resolve().parents[1] / 'assets'
     license_text = (assets / 'vendor/highlightjs/LICENSE').read_text(encoding='utf-8')
     scripts = '\n'.join((assets / name).read_text(encoding='utf-8') for name in
                         ['vendor/highlightjs/highlight.min.js', 'syntax.js'])
     # Bundle pinned local assets and their license; viewing never needs a CDN.
-    bundled = f'/* highlight.js 11.12.0\n{license_text}*/\n{scripts}'
+    reviews = localize((assets / 'review.js').read_text(encoding='utf-8'), data.get('language', 'ko'))
+    bundled = f'/* highlight.js 11.12.0\n{license_text}*/\n{scripts}\n{reviews}'
     bundled = re.sub(r'</script', r'<\\/script', bundled, flags=re.IGNORECASE)
     template = template.replace('__SYNTAX_ASSETS__', bundled)
     return template.replace('__GUIDE_DATA__', json.dumps(data, ensure_ascii=False).replace('<', '\\u003c'))

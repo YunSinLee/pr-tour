@@ -4,7 +4,8 @@
   "scripts": {
     "test:dialog": "node --test tests/test_dialog.cjs",
     "test:mobile": "node --test tests/test_mobile.cjs",
-    "test:browser": "node --test tests/test_dialog.cjs tests/test_mobile.cjs"
+    "test:browser": "node --test tests/test_dialog.cjs tests/test_mobile.cjs tests/test_review.cjs",
+    "test:review": "node --test tests/test_review.cjs"
   },
   "devDependencies": {
     "playwright": "1.58.2"

@@ -109,6 +109,24 @@ For example: `Save the guide and manifest in ~/Documents/pr-tours/starlette-2041
 
 Step links use `#step-id` and open that step's first note; individual notes do not add browser-history entries. Guide and desktop previous/next navigation moves by step.
 
+## Leave comments on code
+
+1. Open **Comments → Comment on current code**, or **Add comment** in the code tools. You can also start by clicking a line number.
+2. Select one line, then another line on the same side to select a range. Base and head lines are separate. On mobile, the line-number targets grow while selecting.
+3. Choose **Write comment**, enter your feedback, and **Save**. Edit or delete it in the list, with an undo action immediately after deletion. Click a location to return to its lines, including collapsed context.
+4. **Copy for AI** copies all comments as JSON; **Download JSON** saves a file. When clipboard access is blocked, a selectable text box provides manual copying.
+5. Open the same PR snapshot in another environment and use **Import JSON** to choose a file or paste JSON. Review the new, duplicate, and conflicting counts, then select **Import comments**. If the same comment ID has different edits, the default keeps the existing version. Compare both versions before choosing to replace it with the incoming one.
+
+The export includes the PR URL, pinned commits, source paths, base/head side, line ranges, selected source text, and comments. Paste it into your AI conversation and ask which feedback to evaluate or apply. PR Tour does not send it to an AI service or post GitHub comments. See the [review export format](skills/pr-tour/references/review-comments.md).
+
+<img src="docs/comments.en.jpg" width="320" alt="Mobile comment editor with selected source lines and an example question">
+
+Saved comments live in **this browser's storage**, separated by PR and source snapshot. They do not modify the HTML or automatically sync between devices or browsers. Storage can be restricted for local files and embedded viewers. Check the displayed storage status and download JSON for durable retention or import it to continue elsewhere. Unsaved editor text can be reopened only while the same page stays open.
+
+If saving detects conflicting changes from another tab, it preserves the stored comments and keeps your current edits in memory. Follow the warning and download JSON before reloading.
+
+Import checks the PR/repository URLs, pinned commits, line ranges, and exact source text. Mismatched or invalid files leave existing comments untouched. Matching IDs, locations, and bodies are skipped as duplicates. Files stay on your device; each import accepts up to 10 MiB and 1,000 comments.
+
 ## Requirements and limits
 
 To make a guide: an agent that supports skills, Python 3.9+, Git, and access to the repository. The preferred GitHub workflow also uses the authenticated `gh` CLI. Python tokenization may require a newer interpreter for newer source syntax.
@@ -146,7 +164,7 @@ Run syntax-rendering regression tests with Node.js 20+ (no package installation)
 node --test tests/test_syntax.cjs
 ```
 
-Run browser regression tests for mobile reading and definition previews in both demos (Node.js 20+):
+Run browser regression tests for mobile reading, definition previews, and comments in both demos (Node.js 20+):
 
 ```sh
 npm ci
