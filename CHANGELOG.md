@@ -6,6 +6,7 @@
 - Edit, delete/undo, and revisit comments, including collapsed context and old paths in renamed files.
 - Keep saved comments in browser storage per PR snapshot, showing storage failures; preserve dismissed editor drafts for the current page session.
 - Copy or download JSON containing pinned commits, source paths, sides, exact selected source, and feedback. Provide manual copying when clipboard access is blocked.
+- Import JSON files or pasted exports after validating the PR snapshot and exact source. Preview additions, duplicates and conflicts; keep local edits by default or explicitly replace conflicts. Reject invalid files without changing saved comments.
 - Document comment use, storage limits, and the export schema, and test offline use, source fidelity, persistence, snapshot isolation, and mobile layouts in both languages.
 
 ## 0.5.0 — 2026-09-21

@@ -7,6 +7,8 @@ const TourReview = (() => {
     const key = 'pr-tour.review.v1:' + JSON.stringify([data.url, data.mergeBase, data.head]);
     const sources = new Map();
     let comments = [], selection = null, selecting = false, draft = null, downloadUrl = '';
+    let importItems = null, importRead = 0;
+    const importLimit = 10 * 1024 * 1024;
     let storageState = 'ready';
     const node = (tag, text = '', cls = '') => {
       const n = document.createElement(tag);
@@ -72,6 +74,81 @@ const TourReview = (() => {
           commit: c.side === 'left' ? data.mergeBase : data.head, startLine: c.start, endLine: c.end,
           code: codeOf(c), body: c.body, createdAt: c.createdAt, updatedAt: c.updatedAt}))}, null, 2);
     }
+    function parseImport(text) {
+      if (new Blob([text]).size > importLimit) throw new Error('JSON 파일은 10 MiB 이하여야 합니다.');
+      let saved;
+      try { saved = JSON.parse(text); }
+      catch { throw new Error('JSON을 읽을 수 없습니다. 파일 내용 전체를 확인해 주세요.'); }
+      if (!saved || saved.kind !== 'pr-tour-review' || saved.schemaVersion !== 1 || !Array.isArray(saved.comments)) {
+        throw new Error('PR Tour 코멘트 JSON 형식이 아닙니다. 지원하는 형식은 버전 1입니다.');
+      }
+      if (saved.prUrl !== data.url || saved.repositoryUrl !== data.repositoryUrl || saved.head !== data.head ||
+          saved.base !== data.base || saved.mergeBase !== data.mergeBase) {
+        throw new Error('PR 또는 기준 커밋이 다릅니다. JSON을 내보낸 것과 같은 버전의 가이드를 열어 주세요.');
+      }
+      if (saved.comments.length > 1000) throw new Error('한 번에 가져올 수 있는 코멘트는 1,000개까지입니다.');
+      const ids = new Set();
+      return saved.comments.map(item => {
+        if (!item || typeof item.id !== 'string' || !item.id.length || item.id.length > 200 || ids.has(item.id) ||
+            !['left', 'right'].includes(item.side) || typeof item.path !== 'string') {
+          throw new Error('코멘트 정보가 올바르지 않거나 파일 안에 중복 ID가 있습니다.');
+        }
+        ids.add(item.id);
+        const matches = Object.keys(data.files).filter(file =>
+          (item.side === 'left' ? data.files[file].oldPath : file) === item.path &&
+          (item.side === 'left' ? data.files[file].oldLineCount : data.files[file].lineCount) > 0);
+        if (matches.length !== 1) throw new Error('코멘트의 파일 경로를 이 가이드에서 찾을 수 없습니다.');
+        const c = {id:item.id, file:matches[0], side:item.side, start:item.startLine, end:item.endLine,
+          body:item.body, createdAt:item.createdAt, updatedAt:item.updatedAt};
+        if (!valid(c) || !Number.isFinite(Date.parse(c.createdAt)) || !Number.isFinite(Date.parse(c.updatedAt))) {
+          throw new Error('코멘트의 줄 범위, 내용 또는 날짜가 올바르지 않습니다.');
+        }
+        if (item.commit !== (c.side === 'left' ? data.mergeBase : data.head) || item.code !== codeOf(c)) {
+          throw new Error('코멘트에 담긴 코드가 이 가이드의 원문과 다릅니다. 원래 내보낸 JSON을 확인해 주세요.');
+        }
+        return c;
+      });
+    }
+    function importPlan() {
+      const byId = new Map(comments.map(c => [c.id, c]));
+      const plan = {added:[], same:[], conflicts:[]};
+      for (const incoming of importItems || []) {
+        const existing = byId.get(incoming.id);
+        if (!existing) plan.added.push(incoming);
+        else if (['file', 'side', 'start', 'end', 'body'].every(field => existing[field] === incoming[field])) plan.same.push(incoming);
+        else plan.conflicts.push({existing, incoming});
+      }
+      return plan;
+    }
+    function clearImportPreview() {
+      importItems = null;
+      el('review-import-preview').hidden = true;
+      el('review-import-error').textContent = '';
+    }
+    function updateImportAction() {
+      const plan = importPlan();
+      const replacing = el('review-import-policy').value === 'replace';
+      el('review-import-apply').disabled = !plan.added.length && !(replacing && plan.conflicts.length);
+    }
+    function previewImport() {
+      clearImportPreview();
+      try { importItems = parseImport(el('review-import-text').value); }
+      catch (error) { el('review-import-error').textContent = error.message; return; }
+      const plan = importPlan();
+      const added = plan.added.length, same = plan.same.length, conflicts = plan.conflicts.length;
+      el('review-import-summary').textContent = `새 코멘트 ${added}개 · 중복 ${same}개 · 충돌 ${conflicts}개`;
+      el('review-import-policy').value = 'keep';
+      el('review-import-conflict-options').hidden = !conflicts;
+      const cards = el('review-import-conflicts'); cards.replaceChildren();
+      for (const {existing, incoming} of plan.conflicts) {
+        const card = node('article', '', 'review-card');
+        card.append(node('strong', '기존 코멘트'), node('p', label(existing), 'review-editor-location'), node('p', existing.body, 'review-body'),
+          node('strong', '가져올 코멘트'), node('p', label(incoming), 'review-editor-location'), node('p', incoming.body, 'review-body'));
+        cards.append(card);
+      }
+      el('review-import-preview').hidden = false;
+      updateImportAction();
+    }
     function refresh() {
       for (const id of ['review-open', 'review-menu-open']) el(id).textContent = `코멘트 (${comments.length})`;
       el('review-copy').disabled = el('review-download').disabled = comments.length === 0;
@@ -136,10 +213,11 @@ const TourReview = (() => {
       return b;
     }
     function view(name) {
-      for (const id of ['list', 'editor', 'export']) el(`review-${id}`).hidden = id !== name;
+      importRead++;
+      for (const id of ['list', 'editor', 'export', 'import']) el(`review-${id}`).hidden = id !== name;
       el('review-exports').hidden = name !== 'list';
       el('review-feedback').textContent = '';
-      el('review-title').textContent = name === 'editor' ? '코멘트 작성' : name === 'export' ? 'JSON 복사' : '리뷰 코멘트';
+      el('review-title').textContent = name === 'editor' ? '코멘트 작성' : name === 'export' ? 'JSON 복사' : name === 'import' ? 'JSON 불러오기' : '리뷰 코멘트';
       storageLabel();
       if (!dialog.open) dialog.showModal();
     }
@@ -208,6 +286,45 @@ const TourReview = (() => {
       }
     });
     el('review-export-back').addEventListener('click', list);
+    el('review-import-open').addEventListener('click', () => {
+      clearImportPreview(); view('import');
+      el('review-import-text').value = '';
+      el('review-import-filename').textContent = '';
+      el('review-import-file').value = '';
+      el('review-import-file-button').focus();
+    });
+    el('review-import-cancel').addEventListener('click', list);
+    dialog.addEventListener('close', () => { importRead++; });
+    el('review-import-text').addEventListener('input', () => { importRead++; clearImportPreview(); });
+    el('review-import-file-button').addEventListener('click', () => el('review-import-file').click());
+    el('review-import-file').addEventListener('change', async () => {
+      const file = el('review-import-file').files[0];
+      if (!file) return;
+      const read = ++importRead;
+      clearImportPreview();
+      el('review-import-filename').textContent = file.name;
+      el('review-import-text').value = '';
+      if (file.size > importLimit) { el('review-import-error').textContent = 'JSON 파일은 10 MiB 이하여야 합니다.'; return; }
+      try {
+        const text = await file.text();
+        if (read !== importRead || !dialog.open || el('review-import').hidden) return;
+        el('review-import-text').value = text;
+        previewImport();
+      } catch {
+        if (read === importRead && dialog.open) el('review-import-error').textContent = '파일을 읽을 수 없습니다. 다시 선택하거나 JSON을 붙여넣어 주세요.';
+      }
+    });
+    el('review-import-check').addEventListener('click', previewImport);
+    el('review-import-policy').addEventListener('change', updateImportAction);
+    el('review-import-apply').addEventListener('click', () => {
+      if (!importItems) return;
+      const plan = importPlan(), replacing = el('review-import-policy').value === 'replace';
+      const replacements = new Map(replacing ? plan.conflicts.map(({incoming}) => [incoming.id, incoming]) : []);
+      comments = comments.map(c => replacements.get(c.id) || c).concat(plan.added);
+      const added = plan.added.length, replaced = replacements.size, skipped = plan.same.length + (replacing ? 0 : plan.conflicts.length);
+      persist(); list(); importItems = null;
+      el('review-feedback').textContent = `${added}개 추가 · ${replaced}개 교체 · ${skipped}개 건너뜀`;
+    });
     el('review-download').addEventListener('click', () => {
       if (downloadUrl) URL.revokeObjectURL(downloadUrl);
       downloadUrl = URL.createObjectURL(new Blob([payload()], {type: 'application/json'}));

@@ -55,8 +55,41 @@ async function exported(page) {
   const download = await downloadEvent;
   return JSON.parse(readFileSync(await download.path(), 'utf8'));
 }
+async function previewImport(page, value, file = false) {
+  await page.locator('#review-import-open').click();
+  const text = typeof value === 'string' ? value : JSON.stringify(value);
+  if (file) {
+    const chooserEvent = page.waitForEvent('filechooser');
+    await page.locator('#review-import-file-button').click();
+    await (await chooserEvent).setFiles({name:'review.json',mimeType:'application/json',buffer:Buffer.from(text)});
+  } else {
+    await page.locator('#review-import-text').fill(text);
+    await page.locator('#review-import-check').click();
+  }
+}
 
 for (const language of ['en', 'ko']) {
+  test(`${language}: downloaded comments import from a file, persist and return to code on mobile`, async () => {
+    await withGuide(language, {mobile:true}, async page => {
+      const text = language === 'ko' ? '다른 브라우저에서도 이어서 읽어요.' : 'Portable comment';
+      await chooseRange(page, 207, 213); await save(page, text);
+      const backup = await exported(page);
+      await page.locator('.review-card-actions button').last().click();
+      await page.reload(); await page.locator('#review-open').click();
+      assert.equal(await page.locator('.review-card').count(), 0);
+      await previewImport(page, backup, true);
+      await page.locator('#review-import-preview').waitFor({state:'visible'});
+      const sheet = await page.locator('#review-dialog').boundingBox();
+      assert.ok(sheet.x >= 0 && sheet.x + sheet.width <= 391 && sheet.y >= 0 && sheet.y + sheet.height <= 845);
+      await page.locator('#review-import-apply').click();
+      assert.deepEqual(await exported(page), backup, 'round trip preserves all exported fields');
+      await page.reload(); await page.locator('#review-open').click();
+      assert.equal(await page.locator('.review-body').textContent(), text);
+      await page.locator('.review-location').click();
+      await page.waitForFunction(() => document.querySelector('#diff-body tr[data-line="207"]')?.classList.contains('review-selected'));
+    });
+  });
+
   test(`${language}: offline range, literal text, edit, delete/undo, exact JSON and navigation`, async () => {
     await withGuide(language, {file:true}, async page => {
       const body = '<img src=x onerror=alert(1)>\n이 경우 예외 처리도 필요할까요?';
@@ -232,5 +265,118 @@ test('invalid stored data cannot execute or prevent the reader from loading', as
     await page.locator('#review-close').click();
     await page.locator('#next').click();
     assert.match(await page.locator('#progress-text').textContent(), /03/);
+  });
+});
+
+test('import previews preserve local edits by default, replace explicitly and skip repeated imports', async () => {
+  await withGuide('en', {}, async page => {
+    await chooseRange(page, 207); await save(page, 'Local version');
+    await page.locator('#review-close').click();
+    await chooseRange(page, 208); await save(page, 'Unchanged');
+    const incoming = await exported(page);
+    incoming.comments[0].body = '<img src=x onerror=alert(1)> Incoming version';
+    incoming.comments.push({...incoming.comments[1],id:'new-comment',body:'Added from backup'});
+    await previewImport(page, incoming);
+    assert.equal(await page.locator('#review-import-summary').textContent(), '1 new · 1 duplicates · 1 conflicts');
+    assert.equal(await page.locator('#review-import-policy').inputValue(), 'keep');
+    assert.equal(await page.locator('#review-import-conflicts img').count(), 0);
+    await page.locator('#review-import-apply').click();
+    let out = await exported(page);
+    assert.deepEqual(out.comments.map(c => c.body), ['Local version','Unchanged','Added from backup']);
+    await previewImport(page, incoming);
+    assert.equal(await page.locator('#review-import-apply').isEnabled(), false);
+    await page.locator('#review-import-policy').selectOption('replace');
+    await page.locator('#review-import-apply').click();
+    out = await exported(page);
+    assert.deepEqual(out, incoming);
+    assert.equal(await page.locator('.review-body img').count(), 0);
+    await previewImport(page, incoming);
+    assert.equal(await page.locator('#review-import-summary').textContent(), '0 new · 3 duplicates · 0 conflicts');
+    assert.equal(await page.locator('#review-import-apply').isEnabled(), false);
+    await page.locator('#review-import-text').fill('{}');
+    assert.equal(await page.locator('#review-import-preview').isHidden(), true, 'editing invalidates the checked data');
+    await page.locator('#review-import-cancel').click();
+    assert.deepEqual(await exported(page), incoming);
+  });
+});
+
+test('invalid files reject atomically without touching saved comments', async () => {
+  await withGuide('en', {}, async page => {
+    await chooseRange(page, 207); await save(page, 'Keep this');
+    const backup = await exported(page);
+    const stored = await page.evaluate(() => JSON.stringify(Object.entries(localStorage).filter(([key]) => key.startsWith('pr-tour.review'))));
+    const mutations = [
+      data => { data.schemaVersion = 2; },
+      data => { data.prUrl += '9'; },
+      data => { data.head = 'f'.repeat(40); },
+      data => { data.base = 'f'.repeat(40); },
+      data => { data.mergeBase = 'f'.repeat(40); },
+      data => { data.comments[1].path = '../missing.py'; },
+      data => { data.comments[1].endLine = 999999999; },
+      data => { data.comments[1].side = 'other'; },
+      data => { data.comments[1].commit = data.mergeBase; },
+      data => { data.comments[1].code = 'different source'; },
+      data => { data.comments[1].body = ' '; },
+      data => { data.comments[1].updatedAt = 'invalid date'; },
+      data => { data.comments[1].id = data.comments[0].id; },
+    ];
+    for (const mutate of mutations) {
+      const incoming = structuredClone(backup);
+      incoming.comments = [{...incoming.comments[0],id:'new-one',body:'Valid addition'}, {...incoming.comments[0],id:'bad-one'}];
+      mutate(incoming);
+      await previewImport(page, incoming);
+      assert.ok((await page.locator('#review-import-error').textContent()).length > 0);
+      assert.equal(await page.locator('#review-import-preview').isHidden(), true);
+      await page.locator('#review-import-cancel').click();
+      assert.equal(await page.locator('#review-items .review-body').textContent(), 'Keep this');
+      assert.equal(await page.evaluate(() => JSON.stringify(Object.entries(localStorage).filter(([key]) => key.startsWith('pr-tour.review')))), stored);
+    }
+    await previewImport(page, '{broken json', true);
+    await page.waitForFunction(() => document.getElementById('review-import-error').textContent.length > 0);
+    await page.locator('#review-import-cancel').click();
+    await page.reload(); await page.locator('#review-open').click();
+    assert.deepEqual(await exported(page), backup);
+  });
+});
+
+test('base-side rename imports map back to the current file and work offline without storage', async () => {
+  await withGuide('en', {fixture: data => {
+    data.files['starlette/websockets.py'].oldPath = 'starlette/previous.py';
+    // A newly added file can reuse the old name after a rename. It has no base-side source.
+    data.files['starlette/previous.py'] = {path:'starlette/previous.py',oldPath:'starlette/previous.py',status:'A',
+      lineCount:1,oldLineCount:0,added:1,removed:0,rows:[{kind:'add',old:null,new:1,text:'replacement = True'}]};
+    data.steps.push({...data.steps[0],id:'replacement',file:'starlette/previous.py',notes:[]});
+  }}, async page => {
+    await chooseRange(page, 68, 68, 'left'); await save(page, 'Old path');
+    const backup = await exported(page);
+    await page.locator('.review-card-actions button').last().click();
+    await page.evaluate(() => { Storage.prototype.setItem = () => { throw new Error('quota'); }; });
+    await previewImport(page, backup);
+    await page.locator('#review-import-apply').click();
+    assert.match(await page.locator('#review-storage').textContent(), /unavailable/);
+    assert.deepEqual(await exported(page), backup);
+    await page.locator('.review-location').click();
+    await page.waitForFunction(() => document.querySelector('#diff-body tr[data-old-line="68"]')?.classList.contains('review-selected'));
+  });
+});
+
+test('file URLs can restore a backup; large inputs and cancelled previews leave data unchanged', async () => {
+  await withGuide('en', {file:true}, async page => {
+    await chooseRange(page, 207); await save(page, 'Offline');
+    const backup = await exported(page);
+    await page.locator('.review-card-actions button').last().click();
+    await previewImport(page, backup, true);
+    await page.locator('#review-import-preview').waitFor({state:'visible'});
+    await page.locator('#review-import-cancel').click();
+    assert.equal(await page.locator('.review-card').count(), 0);
+    await previewImport(page, backup, true);
+    await page.locator('#review-import-preview').waitFor({state:'visible'});
+    await page.locator('#review-import-apply').click();
+    assert.deepEqual(await exported(page), backup);
+    await previewImport(page, ' '.repeat(10 * 1024 * 1024 + 1), true);
+    await page.waitForFunction(() => document.getElementById('review-import-error').textContent.includes('10 MiB'));
+    assert.equal(await page.locator('#review-import-preview').isHidden(), true);
+    await page.locator('#review-import-cancel').click();
+    assert.deepEqual(await exported(page), backup);
   });
 });

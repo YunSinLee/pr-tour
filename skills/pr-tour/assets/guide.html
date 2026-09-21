@@ -127,7 +127,20 @@ __REVIEW_CSS__
   <section id="review-list"><button type="button" id="review-add-from-list">현재 코드에 코멘트</button><div id="review-items"></div></section>
   <section id="review-editor" hidden><p id="review-location" class="review-editor-location"></p><pre id="review-code" class="review-code"></pre><label for="review-text">코멘트</label><textarea id="review-text" maxlength="10000" placeholder="궁금한 점이나 수정 의견을 남겨주세요."></textarea><div class="review-editor-actions"><button type="button" id="review-cancel-edit">취소</button><button type="button" class="primary" id="review-save">저장</button></div></section>
   <section id="review-export" hidden><label for="review-export-text">자동 복사가 제한되어 있습니다. 아래 JSON을 직접 복사하세요.</label><textarea id="review-export-text" readonly spellcheck="false"></textarea><button type="button" id="review-export-back">목록으로</button></section>
-  <div id="review-exports" class="review-exports"><button type="button" class="primary" id="review-copy">AI에 복사</button><button type="button" id="review-download">JSON 다운로드</button></div>
+  <section id="review-import" hidden>
+    <p class="review-import-hint">이 가이드에서 내보낸 JSON을 선택하거나 붙여넣으세요. 파일은 서버로 전송되지 않습니다.</p>
+    <button type="button" id="review-import-file-button">JSON 파일 선택</button><input type="file" id="review-import-file" accept=".json,application/json" hidden><span id="review-import-filename"></span>
+    <label for="review-import-text">JSON 내용</label><textarea id="review-import-text" maxlength="10485760" spellcheck="false"></textarea>
+    <p id="review-import-error" role="alert"></p>
+    <button type="button" id="review-import-check">내용 확인</button>
+    <div id="review-import-preview" hidden>
+      <p id="review-import-summary" role="status"></p>
+      <div id="review-import-conflict-options" hidden><label for="review-import-policy">같은 코멘트가 서로 다르게 수정된 경우</label><select id="review-import-policy"><option value="keep">기존 코멘트 유지</option><option value="replace">가져온 코멘트로 교체</option></select><div id="review-import-conflicts"></div></div>
+      <button type="button" class="primary" id="review-import-apply">가져오기</button>
+    </div>
+    <div class="review-editor-actions"><button type="button" id="review-import-cancel">목록으로</button></div>
+  </section>
+  <div id="review-exports" class="review-exports"><button type="button" class="primary" id="review-copy">AI에 복사</button><button type="button" id="review-download">JSON 다운로드</button><button type="button" id="review-import-open">JSON 불러오기</button></div>
 </div><footer class="review-footer"><div id="review-feedback" role="status"></div><p id="review-storage" role="status"></p></footer>
 </dialog>
 <noscript>이 가이드는 파일에 포함된 JavaScript로 구간을 전환합니다. JavaScript를 허용하는 브라우저에서 이 HTML을 열어 주세요.</noscript>

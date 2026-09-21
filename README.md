@@ -115,12 +115,15 @@ Step links use `#step-id` and open that step's first note; individual notes do n
 2. Select one line, then another line on the same side to select a range. Base and head lines are separate. On mobile, the line-number targets grow while selecting.
 3. Choose **Write comment**, enter your feedback, and **Save**. Edit or delete it in the list, with an undo action immediately after deletion. Click a location to return to its lines, including collapsed context.
 4. **Copy for AI** copies all comments as JSON; **Download JSON** saves a file. When clipboard access is blocked, a selectable text box provides manual copying.
+5. Open the same PR snapshot in another environment and use **Import JSON** to choose a file or paste JSON. Review the new, duplicate, and conflicting counts, then select **Import comments**. If the same comment ID has different edits, the default keeps the existing version. Compare both versions before choosing to replace it with the incoming one.
 
 The export includes the PR URL, pinned commits, source paths, base/head side, line ranges, selected source text, and comments. Paste it into your AI conversation and ask which feedback to evaluate or apply. PR Tour does not send it to an AI service or post GitHub comments. See the [review export format](skills/pr-tour/references/review-comments.md).
 
 <img src="docs/comments.en.jpg" width="320" alt="Mobile comment editor with selected source lines and an example question">
 
-Saved comments live in **this browser's storage**, separated by PR and source snapshot. They do not modify the HTML or sync between devices or browsers. Storage can be restricted for local files and embedded viewers. Check the displayed storage status and download JSON for durable retention or sharing. JSON import is not supported yet. Unsaved editor text can be reopened only while the same page stays open.
+Saved comments live in **this browser's storage**, separated by PR and source snapshot. They do not modify the HTML or automatically sync between devices or browsers. Storage can be restricted for local files and embedded viewers. Check the displayed storage status and download JSON for durable retention or import it to continue elsewhere. Unsaved editor text can be reopened only while the same page stays open.
+
+Import checks the PR/repository URLs, pinned commits, line ranges, and exact source text. Mismatched or invalid files leave existing comments untouched. Matching IDs, locations, and bodies are skipped as duplicates. Files stay on your device; each import accepts up to 10 MiB and 1,000 comments.
 
 ## Requirements and limits
 
