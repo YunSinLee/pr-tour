@@ -1591,7 +1591,7 @@ const TourReview = (() => {
     let comments = [], selection = null, selecting = false, draft = null, downloadUrl = '';
     let importItems = null, importRead = 0;
     const importLimit = 10 * 1024 * 1024;
-    let storageState = 'ready';
+    let storageState = 'ready', storedText = null, storedComments = [], saving = false;
     const node = (tag, text = '', cls = '') => {
       const n = document.createElement(tag);
       n.textContent = text;
@@ -1620,13 +1620,15 @@ const TourReview = (() => {
         typeof c.body === 'string' && c.body.trim().length > 0 && c.body.length <= 10000 &&
         typeof c.createdAt === 'string' && typeof c.updatedAt === 'string';
     }
+    function readComments(text) {
+      const parsed = text === null ? [] : JSON.parse(text);
+      if (!Array.isArray(parsed) || !parsed.every(valid) || new Set(parsed.map(c => c.id)).size !== parsed.length) throw new Error('invalid');
+      return parsed;
+    }
     try {
-      const saved = localStorage.getItem(key);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (!Array.isArray(parsed) || !parsed.every(valid) || new Set(parsed.map(c => c.id)).size !== parsed.length) throw new Error('invalid');
-        comments = parsed;
-      }
+      storedText = localStorage.getItem(key);
+      comments = readComments(storedText);
+      storedComments = comments.slice();
     } catch { storageState = 'unavailable'; }
 
     function storageLabel() {
@@ -1634,14 +1636,45 @@ const TourReview = (() => {
         ? 'Saved in this browser · Not included in the HTML file.'
         : storageState === 'ready'
           ? 'Saved comments stay in this browser, not in the HTML file.'
-          : 'Browser storage is unavailable. Download JSON before closing.';
+          : storageState === 'conflict'
+            ? 'Comments changed in another tab, so saving stopped. Your current comments remain on this page only. Download JSON before reloading.'
+            : 'Browser storage is unavailable. Download JSON before closing.';
     }
-    function persist() {
-      if (storageState !== 'unavailable') {
-        try { localStorage.setItem(key, JSON.stringify(comments)); storageState = 'saved'; }
-        catch { storageState = 'unavailable'; }
+    const sameComment = (a, b) => a === b || Boolean(a && b &&
+      ['id', 'file', 'side', 'start', 'end', 'body', 'createdAt', 'updatedAt'].every(field => a[field] === b[field]));
+    async function persist() {
+      if (!['ready', 'saved'].includes(storageState)) { refresh(); return; }
+      saving = true; refresh();
+      const desired = comments.slice();
+      const write = locked => {
+        const latestText = localStorage.getItem(key);
+        // Without a shared lock, never replace a collection changed since we read it.
+        if (!locked && latestText !== storedText) { storageState = 'conflict'; return; }
+        const latest = readComments(latestText);
+        const before = new Map(storedComments.map(c => [c.id, c]));
+        const after = new Map(desired.map(c => [c.id, c]));
+        const merged = new Map(latest.map(c => [c.id, c]));
+        for (const id of new Set([...before.keys(), ...after.keys()])) {
+          if (sameComment(before.get(id), after.get(id))) continue;
+          if (!sameComment(merged.get(id), before.get(id)) && !sameComment(merged.get(id), after.get(id))) {
+            storageState = 'conflict'; return;
+          }
+          if (after.has(id)) merged.set(id, after.get(id)); else merged.delete(id);
+        }
+        // Also detect writers that cannot participate in Web Locks, or a cleared store.
+        if (localStorage.getItem(key) !== latestText) { storageState = 'conflict'; return; }
+        const next = [...merged.values()], text = JSON.stringify(next);
+        localStorage.setItem(key, text);
+        storedText = text; storedComments = next.slice(); comments = next;
+        storageState = 'saved';
+      };
+      try {
+        if (navigator.locks?.request) await navigator.locks.request(key, () => write(true));
+        else write(false);
+      } catch { storageState = 'unavailable'; }
+      finally {
+        saving = false; refresh();
       }
-      refresh();
     }
     const pathOf = c => c.side === 'left' ? data.files[c.file].oldPath : c.file;
     const label = c => `${pathOf(c)} · ${c.side === 'left' ? 'Base' : 'Head'} L${c.start}${c.end === c.start ? '' : '–' + c.end}`;
@@ -1710,7 +1743,7 @@ const TourReview = (() => {
     function updateImportAction() {
       const plan = importPlan();
       const replacing = el('review-import-policy').value === 'replace';
-      el('review-import-apply').disabled = !plan.added.length && !(replacing && plan.conflicts.length);
+      el('review-import-apply').disabled = saving || (!plan.added.length && !(replacing && plan.conflicts.length));
     }
     function previewImport() {
       clearImportPreview();
@@ -1734,6 +1767,10 @@ const TourReview = (() => {
     function refresh() {
       for (const id of ['review-open', 'review-menu-open']) el(id).textContent = `Comments (${comments.length})`;
       el('review-copy').disabled = el('review-download').disabled = comments.length === 0;
+      el('review-save').disabled = saving || !el('review-text').value.trim();
+      dialog.setAttribute('aria-busy', String(saving));
+      dialog.querySelectorAll('.review-card-actions button, #review-feedback button').forEach(b => { b.disabled = saving; });
+      updateImportAction();
       el('review-add-from-list').disabled = el('review-add').disabled = !data.files[currentFile()]?.rows.some(r => r.kind === 'gap' || Number.isInteger(r.old) || Number.isInteger(r.new));
       storageLabel();
       decorate();
@@ -1812,9 +1849,18 @@ const TourReview = (() => {
         const card = node('article', '', 'review-card');
         const jump = button(label(c), () => { dialog.close(); cancelSelection(); reveal(c); }, 'review-location');
         const actions = node('div', '', 'review-card-actions');
-        actions.append(button('Edit', () => edit(c)), button('Delete', () => {
-          comments = comments.filter(item => item.id !== c.id); persist(); list();
-          const undo = button('Undo delete', () => { comments.push(c); persist(); list(); });
+        actions.append(button('Edit', () => edit(c)), button('Delete', async () => {
+          if (saving) return;
+          const viewId = importRead;
+          comments = comments.filter(item => item.id !== c.id); await persist();
+          if (!dialog.open || viewId !== importRead) return;
+          list();
+          const undo = button('Undo delete', async () => {
+            if (saving) return;
+            const viewId = importRead;
+            comments = comments.concat(c); await persist();
+            if (dialog.open && viewId === importRead) list();
+          });
           el('review-feedback').replaceChildren(node('span', 'Comment deleted. '), undo);
         }));
         card.append(jump, node('p', c.body, 'review-body'), actions);
@@ -1828,7 +1874,7 @@ const TourReview = (() => {
       el('review-location').textContent = label(c);
       el('review-code').textContent = codeOf(c);
       el('review-text').value = c.body || '';
-      el('review-save').disabled = !el('review-text').value.trim();
+      el('review-save').disabled = saving || !el('review-text').value.trim();
       el('review-text').focus();
     }
     function open() {
@@ -1843,18 +1889,23 @@ const TourReview = (() => {
     el('review-write').addEventListener('click', () => { if (selection) edit(selection); });
     el('review-close').addEventListener('click', () => dialog.close());
     el('review-cancel-edit').addEventListener('click', list);
-    el('review-text').addEventListener('input', () => { el('review-save').disabled = !el('review-text').value.trim(); });
-    el('review-save').addEventListener('click', () => {
+    el('review-text').addEventListener('input', () => { el('review-save').disabled = saving || !el('review-text').value.trim(); });
+    el('review-save').addEventListener('click', async () => {
       const body = el('review-text').value.trim();
-      if (!draft || !body || body.length > 10000) return;
+      if (saving || !draft || !body || body.length > 10000) return;
+      const viewId = importRead;
       const now = new Date().toISOString();
       const c = {id: draft.id || (globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`),
         file: draft.file, side: draft.side, start: draft.start, end: draft.end, body,
         createdAt: draft.createdAt || now, updatedAt: now};
       if (!valid(c)) return;
+      draft = c;
+      const savedDraft = draft;
       const index = comments.findIndex(item => item.id === c.id);
       if (index < 0) comments.push(c); else comments[index] = c;
-      persist(); cancelSelection(); list();
+      cancelSelection(); await persist();
+      if (draft === savedDraft && el('review-text').value.trim() === body) draft = null;
+      if (!draft && dialog.open && viewId === importRead) list();
     });
     el('review-copy').addEventListener('click', async () => {
       const text = payload();
@@ -1898,13 +1949,16 @@ const TourReview = (() => {
     });
     el('review-import-check').addEventListener('click', previewImport);
     el('review-import-policy').addEventListener('change', updateImportAction);
-    el('review-import-apply').addEventListener('click', () => {
-      if (!importItems) return;
+    el('review-import-apply').addEventListener('click', async () => {
+      if (saving || !importItems) return;
+      const viewId = importRead;
       const plan = importPlan(), replacing = el('review-import-policy').value === 'replace';
       const replacements = new Map(replacing ? plan.conflicts.map(({incoming}) => [incoming.id, incoming]) : []);
       comments = comments.map(c => replacements.get(c.id) || c).concat(plan.added);
       const added = plan.added.length, replaced = replacements.size, skipped = plan.same.length + (replacing ? 0 : plan.conflicts.length);
-      persist(); list(); importItems = null;
+      importItems = null; await persist();
+      if (!dialog.open || viewId !== importRead) return;
+      list();
       el('review-feedback').textContent = `${added} added · ${replaced} replaced · ${skipped} skipped`;
     });
     el('review-download').addEventListener('click', () => {

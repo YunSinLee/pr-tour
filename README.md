@@ -123,6 +123,8 @@ The export includes the PR URL, pinned commits, source paths, base/head side, li
 
 Saved comments live in **this browser's storage**, separated by PR and source snapshot. They do not modify the HTML or automatically sync between devices or browsers. Storage can be restricted for local files and embedded viewers. Check the displayed storage status and download JSON for durable retention or import it to continue elsewhere. Unsaved editor text can be reopened only while the same page stays open.
 
+If saving detects conflicting changes from another tab, it preserves the stored comments and keeps your current edits in memory. Follow the warning and download JSON before reloading.
+
 Import checks the PR/repository URLs, pinned commits, line ranges, and exact source text. Mismatched or invalid files leave existing comments untouched. Matching IDs, locations, and bodies are skipped as duplicates. Files stay on your device; each import accepts up to 10 MiB and 1,000 comments.
 
 ## Requirements and limits
