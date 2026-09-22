@@ -43,6 +43,12 @@ async function drag(page, selector, dx, release = true) {
 }
 
 async function fits(page) {
+  // ResizeObserver applies viewport clamping on the next rendering cycle.
+  await page.waitForFunction(() => [...document.querySelectorAll('#workspace > *')]
+    .filter(el => el.getClientRects().length).every(el => {
+      const box = el.getBoundingClientRect();
+      return box.left >= -1 && box.right <= window.innerWidth + 1;
+    }));
   const rects = await page.locator('#workspace > *').evaluateAll(nodes => nodes.filter(el => el.getClientRects().length).map(el => {
     const b = el.getBoundingClientRect(); return {left:b.left, right:b.right};
   }));
