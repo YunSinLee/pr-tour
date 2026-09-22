@@ -8,13 +8,22 @@
 *{box-sizing:border-box}body{margin:0;background:#f6f8fb;color:#202b3c;font:16px/1.6 system-ui,sans-serif}main{max-width:1080px;margin:70px auto;padding:0 24px}h1{font-size:clamp(30px,5vw,54px);line-height:1.15;letter-spacing:-.04em;max-width:800px}p{max-width:660px;color:#52657e}nav{display:flex;gap:12px;flex-wrap:wrap;margin:28px 0}a{color:#255fd6;text-underline-offset:4px}nav a{background:#255fd6;color:white;border-radius:7px;padding:11px 20px;text-decoration:none}nav a.secondary{background:white;color:#255fd6;border:1px solid #d4dfee}img{display:block;width:100%;border:1px solid #dce3ed;border-radius:12px;margin:34px 0}small{color:#647084}a:focus-visible{outline:3px solid #88affc;outline-offset:4px}
 .mobile-preview{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:48px;align-items:center;margin:56px 0;padding-top:40px;border-top:1px solid #dce3ed}.mobile-preview h2{font-size:clamp(26px,4vw,36px);line-height:1.2;letter-spacing:-.025em}.mobile-preview figure{margin:0;max-width:300px}.mobile-preview img{margin:0;height:auto}.mobile-preview figcaption{font-size:12px;color:#647084;margin-top:12px}.mobile-preview p[lang=ko]{font-size:15px}@media(max-width:700px){main{margin:32px auto}.mobile-preview{grid-template-columns:1fr;gap:24px}.mobile-preview figure{justify-self:center}}
 </style>
+<style>.connection-info{margin:56px 0;padding-top:40px;border-top:1px solid #dce3ed}.connection-info h2{font-size:clamp(26px,4vw,36px);line-height:1.2;letter-spacing:-.025em}.connection-info p[lang=ko]{font-size:15px}</style>
 <main>
-<small>PR TOUR · v0.6.0</small>
+<small>PR TOUR · v0.7.0</small>
 <h1>A guided tour<br>of your pull request.</h1>
 <p>Read the real diff alongside a guided explanation. Expand unchanged code and follow function definitions without losing your place.</p>
 <nav aria-label="Demo language"><a href="demo.en.html">Try in English →</a><a href="demo.ko.html" class="secondary" lang="ko">한국어로 읽기 →</a></nav>
 <p>The example follows <a href="https://github.com/Kludex/starlette/pull/2041">Starlette PR #2041</a>: five changed files, eight reading steps, thirteen definition previews.</p>
 <img src="preview.png" alt="Reading order, highlighted diff and explanations in three panes" width="1280" height="720">
+<section class="connection-info" aria-labelledby="connections-title">
+<small>WHY THIS STEP FOLLOWS</small><h2 id="connections-title">Inspect the connection.</h2>
+<p>Expand the source behind a step-to-step explanation, including unchanged callbacks and wiring. <strong>Source cited</strong>, <strong>Includes inference</strong>, and <strong>Reading order</strong> distinguish cited connections, unresolved details, and moves made for understanding. Citations remain available offline.</p>
+<p>Need more space for an excerpt? Drag the vertical dividers to resize adjacent panes on desktop. Your browser remembers the widths; double-click a divider to reset them.</p>
+<p>The builder checks source text and ranges. The agent authors the connection; the labels and counts do not certify an execution path.</p>
+<p lang="ko">다음 단계로 이어지는 코드 근거를 펼쳐보세요. 추론이 포함된 연결에는 확인하지 못한 부분을 함께 표시합니다. 데스크톱에서는 영역 사이의 경계를 드래그해 폭을 조절할 수 있습니다.</p>
+<p><a href="demo.en.html#finish-body">Follow the message queue →</a> · <a href="demo.ko.html#finish-body" lang="ko">연결 근거 보기 →</a></p>
+</section>
 <section class="mobile-preview" aria-labelledby="mobile-title">
 <div><small>READ ON YOUR PHONE</small><h2 id="mobile-title">Follow the next code point.</h2>
 <p><strong>Next code</strong> follows each explanation note and brings its lines into view. Stay in the code as you move between steps, and use <strong>Expand</strong> for more reading space. Open <strong>Guide</strong> when you need the explanation.</p>

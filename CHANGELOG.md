@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.0 — 2026-09-22
+
+- Resize the three desktop panes by dragging either divider, with minimum widths, keyboard controls, cancel/reset, and browser-saved preferences. Preserve pane widths when switching guide/code order; keep the existing tabbed mobile layout.
+- Attach source citations to the connection between adjacent reading steps, including unchanged wiring outside the diff. Expand excerpts with line numbers, syntax colors, and pinned source links offline.
+- Distinguish source-cited connections, explicit inference with unresolved details, and reading-order moves. Summarize authored and missing connections without implying verified execution-path coverage.
+- Reject stale destination IDs, invalid source ranges/sides, and incomplete inference metadata. Preserve older manifests and surface partially authored connections as warnings.
+- Add connection explanations to both Starlette examples, including the test client's callback and message queue. Document the format, interpretation limits, and regeneration requirements.
+- Thanks to [imMamdouhaboammar](https://github.com/anthropics/skills/discussions/1800#discussioncomment-18549931) for suggesting evidence for the transitions between changed regions.
+
 ## 0.6.0 — 2026-09-21
 
 - Add reader comments on individual source lines or ranges, with touch-sized selection controls and a mobile bottom-sheet editor.

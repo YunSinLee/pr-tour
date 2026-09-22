@@ -4,8 +4,10 @@
   "scripts": {
     "test:dialog": "node --test tests/test_dialog.cjs",
     "test:mobile": "node --test tests/test_mobile.cjs",
-    "test:browser": "node --test tests/test_dialog.cjs tests/test_mobile.cjs tests/test_review.cjs",
-    "test:review": "node --test tests/test_review.cjs"
+    "test:browser": "node --test tests/test_dialog.cjs tests/test_mobile.cjs tests/test_review.cjs tests/test_transitions.cjs tests/test_layout.cjs",
+    "test:transitions": "node --test tests/test_transitions.cjs",
+    "test:review": "node --test tests/test_review.cjs",
+    "test:layout": "node --test tests/test_layout.cjs"
   },
   "devDependencies": {
     "playwright": "1.58.2"

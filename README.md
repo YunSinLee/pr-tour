@@ -88,7 +88,9 @@ For example: `Save the guide and manifest in ~/Documents/pr-tours/starlette-2041
 ## What the guide does
 
 - Arranges changes by code flow. A file can appear in more than one step.
+- Explains why the next step follows, with expandable source citations, explicit uncertainty for inferred connections, and a separate label for reading-order moves.
 - Shows the explanation before the code by default. Use **Layout** to switch the two panes; the browser remembers your choice when local storage is available. On phones and narrow screens, **Guide / Code** tabs show one pane at a time and keep your reading position. Selecting a note opens its focused code; changing steps keeps the current tab.
+- Drag either vertical divider to resize adjacent panes on desktop. Widths follow the guide/code panes when reordered and are remembered when browser storage is available. Minimum widths keep each pane usable; smaller windows temporarily clamp widths. Double-click a divider to reset all widths, or focus it and use arrow keys (Shift for larger steps), Home/End, and Enter to reset. Escape cancels an active drag.
 - Shows actual additions, deletions, old/new line numbers, and focused line notes.
 - On mobile, **Next code / Prev code** follow each note across steps and bring its lines into view. **Expand** gives code more room; **Guide** opens the current explanation, and selecting a note returns to expanded code. The **⋯** tools contain line wrapping, full-file context, jump to focus, and the source link. Guide and desktop navigation still move by step.
 - Offers larger mobile navigation controls and a definition preview that fills most of the screen. Phone landscape uses a compact header.
@@ -97,6 +99,14 @@ For example: `Save the guide and manifest in ~/Documents/pr-tours/starlette-2041
 - Opens selected function and type definitions, including related definitions and a back button.
 - Keeps explanations, source, styles, and scripts in one HTML file.
 - Generates Korean or English controls. Authored explanations keep their own language.
+
+## Understand the connection to the next step
+
+At the end of a step, **Up next** explains why the guide moves on. **Source cited** lets you expand the code behind that explanation, including unchanged wiring outside the diff. **Includes inference** names what remains unverified. **Reading order** marks moves such as implementation to tests that help understanding without claiming runtime order.
+
+Each excerpt includes the source side, line numbers, syntax colors, and a link to the pinned commit. The excerpts stay in the offline HTML. The guide-wide connection summary counts authored categories and missing connections; it does not certify execution-path completeness or correctness. The builder verifies citation locations and source, while the agent remains responsible for interpreting the relationship.
+
+The example's [test-client connection](https://yunsinlee.github.io/pr-tour/demo.en.html#finish-body) follows the message queue and discloses the omitted framework wiring. To add connections to an older guide, update its manifest and regenerate the HTML; rebuilding alone does not author new explanations. See the [connection format](skills/pr-tour/references/manifest.md#connections-between-steps).
 
 ## Read on mobile
 
@@ -164,7 +174,7 @@ Run syntax-rendering regression tests with Node.js 20+ (no package installation)
 node --test tests/test_syntax.cjs
 ```
 
-Run browser regression tests for mobile reading, definition previews, and comments in both demos (Node.js 20+):
+Run browser regression tests for pane resizing, mobile reading, definition previews, comments, and connection evidence in both demos (Node.js 20+):
 
 ```sh
 npm ci
