@@ -1631,7 +1631,7 @@ const TourReview = (() => {
     let comments = [], selection = null, selecting = false, draft = null, downloadUrl = '';
     let importItems = null, importRead = 0;
     const importLimit = 10 * 1024 * 1024;
-    let storageState = 'ready', storedText = null, storedComments = [], saving = false;
+    let storageState = 'loading', storedComments = [], saving = true, database = null;
     const node = (tag, text = '', cls = '') => {
       const n = document.createElement(tag);
       n.textContent = text;
@@ -1665,14 +1665,69 @@ const TourReview = (() => {
       if (!Array.isArray(parsed) || !parsed.every(valid) || new Set(parsed.map(c => c.id)).size !== parsed.length) throw new Error('invalid');
       return parsed;
     }
-    try {
-      storedText = localStorage.getItem(key);
-      comments = readComments(storedText);
-      storedComments = comments.slice();
-    } catch { storageState = 'unavailable'; }
+    function openDatabase() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open('pr-tour-review', 1);
+        let failed = false;
+        request.onupgradeneeded = () => request.result.createObjectStore('snapshots');
+        request.onerror = () => {
+          failed = true;
+          reject(request.error);
+        };
+        request.onblocked = () => { failed = true; reject(new Error('Review storage blocked')); };
+        request.onsuccess = () => {
+          const db = request.result;
+          if (failed) { db.close(); return; }
+          db.onversionchange = () => db.close();
+          resolve(db);
+        };
+      });
+    }
+    function transaction(update) {
+      return new Promise((resolve, reject) => {
+        // The read and write must share one transaction. Web Locks alone cannot
+        // make another WebKit process's localStorage cache current.
+        const tx = database.transaction('snapshots', 'readwrite');
+        const store = tx.objectStore('snapshots');
+        let result, failure;
+        const request = store.get(key);
+        request.onsuccess = () => {
+          try {
+            if (request.result !== undefined && typeof request.result !== 'string') throw new Error('Invalid review record');
+            result = update(request.result, store);
+          }
+          catch (error) { failure = error; tx.abort(); }
+        };
+        tx.oncomplete = () => resolve(result);
+        tx.onabort = () => reject(failure || tx.error || new Error('Review transaction aborted'));
+      });
+    }
+    async function load() {
+      // A restricted viewer may still read its old comments even when opening
+      // IndexedDB fails. They remain exportable; never write a fallback copy.
+      try { comments = readComments(localStorage.getItem(key)); } catch {}
+      try {
+        database = await openDatabase();
+        comments = await transaction((text, store) => {
+          comments = readComments(text === undefined ? localStorage.getItem(key) : text);
+          // Keep old HTML data intact. New and old viewers do not live-sync.
+          if (text === undefined) store.put(JSON.stringify(comments), key);
+          return comments;
+        });
+        storedComments = comments.slice();
+        storageState = 'ready';
+      } catch { storageState = 'unavailable'; }
+      finally {
+        saving = false; refresh();
+        if (dialog.open && !el('review-list').hidden) list();
+        else if (importItems) previewImport();
+      }
+    }
 
     function storageLabel() {
-      el('review-storage').textContent = storageState === 'saved'
+      el('review-storage').textContent = storageState === 'loading'
+        ? 'Loading saved comments.'
+        : storageState === 'saved'
         ? 'Saved in this browser · Not included in the HTML file.'
         : storageState === 'ready'
           ? 'Saved comments stay in this browser, not in the HTML file.'
@@ -1686,31 +1741,30 @@ const TourReview = (() => {
       if (!['ready', 'saved'].includes(storageState)) { refresh(); return; }
       saving = true; refresh();
       const desired = comments.slice();
-      const write = locked => {
-        const latestText = localStorage.getItem(key);
-        // Without a shared lock, never replace a collection changed since we read it.
-        if (!locked && latestText !== storedText) { storageState = 'conflict'; return; }
-        const latest = readComments(latestText);
-        const before = new Map(storedComments.map(c => [c.id, c]));
-        const after = new Map(desired.map(c => [c.id, c]));
-        const merged = new Map(latest.map(c => [c.id, c]));
-        for (const id of new Set([...before.keys(), ...after.keys()])) {
-          if (sameComment(before.get(id), after.get(id))) continue;
-          if (!sameComment(merged.get(id), before.get(id)) && !sameComment(merged.get(id), after.get(id))) {
-            storageState = 'conflict'; return;
+      const write = async () => {
+        const next = await transaction((text, store) => {
+          const latest = readComments(text === undefined ? null : text);
+          const before = new Map(storedComments.map(c => [c.id, c]));
+          const after = new Map(desired.map(c => [c.id, c]));
+          const merged = new Map(latest.map(c => [c.id, c]));
+          for (const id of new Set([...before.keys(), ...after.keys()])) {
+            if (sameComment(before.get(id), after.get(id))) continue;
+            if (!sameComment(merged.get(id), before.get(id)) && !sameComment(merged.get(id), after.get(id))) {
+              storageState = 'conflict'; return null;
+            }
+            if (after.has(id)) merged.set(id, after.get(id)); else merged.delete(id);
           }
-          if (after.has(id)) merged.set(id, after.get(id)); else merged.delete(id);
-        }
-        // Also detect writers that cannot participate in Web Locks, or a cleared store.
-        if (localStorage.getItem(key) !== latestText) { storageState = 'conflict'; return; }
-        const next = [...merged.values()], text = JSON.stringify(next);
-        localStorage.setItem(key, text);
-        storedText = text; storedComments = next.slice(); comments = next;
+          const next = [...merged.values()];
+          store.put(JSON.stringify(next), key);
+          return next;
+        });
+        if (next === null) return;
+        storedComments = next.slice(); comments = next;
         storageState = 'saved';
       };
       try {
-        if (navigator.locks?.request) await navigator.locks.request(key, () => write(true));
-        else write(false);
+        if (navigator.locks?.request) await navigator.locks.request(key, write);
+        else await write();
       } catch { storageState = 'unavailable'; }
       finally {
         saving = false; refresh();
@@ -2016,6 +2070,7 @@ const TourReview = (() => {
       }
     }, true);
     refresh();
+    load();
     return {lineButton, refresh, cancelSelection};
   }
   return {init};

@@ -154,5 +154,6 @@
   "코드 영역 너비": "Code pane width",
   "${Math.round(range.value)} 픽셀": "${Math.round(range.value)} pixels",
   "드래그로 너비 조절 · 방향키로 미세 조절 · 더블클릭 또는 Enter로 전체 너비 초기화": "Drag to resize · Arrow keys to adjust · Double-click or Enter to reset all widths",
-  "영역 너비를 기본값으로 되돌렸습니다.": "Pane widths reset to defaults."
+  "영역 너비를 기본값으로 되돌렸습니다.": "Pane widths reset to defaults.",
+  "저장한 코멘트를 불러오는 중입니다.": "Loading saved comments."
 }

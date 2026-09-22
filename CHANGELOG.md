@@ -7,6 +7,7 @@
 - Distinguish source-cited connections, explicit inference with unresolved details, and reading-order moves. Summarize authored and missing connections without implying verified execution-path coverage.
 - Reject stale destination IDs, invalid source ranges/sides, and incomplete inference metadata. Preserve older manifests and surface partially authored connections as warnings.
 - Add connection explanations to both Starlette examples, including the test client's callback and message queue. Document the format, interpretation limits, and regeneration requirements.
+- Save review comments in an IndexedDB transaction to prevent simultaneous saves in different tabs from losing unrelated comments in WebKit. Migrate existing localStorage comments without deleting the legacy copy, and retain JSON export when browser storage is unavailable.
 - Thanks to [imMamdouhaboammar](https://github.com/anthropics/skills/discussions/1800#discussioncomment-18549931) for suggesting evidence for the transitions between changed regions.
 
 ## 0.6.0 — 2026-09-21
