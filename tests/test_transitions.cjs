@@ -58,6 +58,7 @@ for (const language of ['en', 'ko']) {
       await page.locator('.transition-evidence > summary').click();
       assert.equal(await page.locator('.transition-excerpt').count(), refs.length);
       await page.goto(url + '#finish-body');
+      await page.locator('.transition-badge.inferred').waitFor();
       assert.equal(await page.locator('.transition-badge.inferred').count(), 1);
       assert.ok((await page.locator('.transition-uncertainty').textContent()).length > 50);
       await page.locator('.transition-evidence > summary').click();
@@ -68,9 +69,11 @@ for (const language of ['en', 'ko']) {
       assert.deepEqual(counts.map(text => Number(text.split(': ').pop())), [3, 1, 3, 0]);
       if (language === 'en') assert.doesNotMatch(await page.locator('.next-flow').textContent(), /[가-힣]/);
       await page.goto(url + '#contract');
+      await page.locator('.transition-badge.reading').waitFor();
       assert.equal(await page.locator('.transition-badge.reading').count(), 1);
       assert.equal(await page.locator('.transition-evidence').count(), 0);
       await page.goto(url + '#reject-invalid');
+      await page.waitForFunction(() => document.getElementById('next').disabled);
       assert.equal(await page.locator('.transition-badge').count(), 0);
       assert.equal(await page.locator('.transition-evidence').count(), 0);
       assert.equal(await page.locator('#next').isDisabled(), true);
