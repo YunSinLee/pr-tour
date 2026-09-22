@@ -67,7 +67,56 @@ For helpful code outside the diff, add a definition or an optional step `referen
 
 The builder supplies reference `code` automatically. `right` reads head; `left` reads merge base. For a renamed file's left reference/definition, supply the old path.
 
+## Connections between steps
+
+For a new guide, add `transition` to every step except the final one. Keep the reason for moving to the next step in the existing `next` text. A transition describes the connection between adjacent reading steps, not between each line note.
+
+This fragment extends the public example's `serialize` step:
+
+```json
+{
+  "next": "The response receives WebSocket.send as its callback. Follow that callback to state handling.",
+  "transition": {
+    "to": "response-state",
+    "basis": "source",
+    "evidence": [
+      {
+        "path": "starlette/websockets.py",
+        "side": "right",
+        "start": 207,
+        "end": 209,
+        "text": "The response receives the current WebSocket send method."
+      },
+      {
+        "path": "starlette/responses.py",
+        "side": "right",
+        "start": 150,
+        "end": 158,
+        "text": "The base Response calls that argument with a start message."
+      }
+    ]
+  }
+}
+```
+
+Replace example ranges with code observed at your own pinned snapshot. The full Starlette manifests include the destination branch and a callback/queue connection with explicit uncertainty.
+
+| `basis` | Meaning and requirements |
+| --- | --- |
+| `source` | You explain the connection using at least one source citation. Displayed as **Source cited**, not as a verified call graph. |
+| `inferred` | Require a nonempty `uncertainty` explaining what remains unverified. Evidence is optional; include the parts you could trace. |
+| `reading` | Explain in `next` why the reader moves between topics, such as documentation to implementation or implementation to tests. Evidence is optional. |
+
+`to` must equal the immediately following step's ID. Reordering steps requires updating their connections. The final step cannot have a transition; its `next` remains the closing text. `uncertainty` is permitted only with `inferred`, so qualifications cannot be silently hidden under another label.
+
+Each evidence item requires `path,side,start,end,text`. Explicit `side: "right"` reads head; `"left"` reads merge base, with the old path for renamed/deleted files. Citations may include unchanged files and hidden context outside the diff. The builder extracts text directly from Git and checks the range. Do not supply `code`, `rows`, URLs, or other fields; neither transition objects nor evidence items accept unknown fields. Directories, submodules, binary files, and non-UTF-8 evidence are rejected. Small, coherent excerpts make the relationship easier to inspect.
+
+The generated **Up next** card shows the classification, any uncertainty, and expandable code excerpts with line numbers, syntax colors, and pinned source links. Excerpts work offline; opening external source links is optional. Syntax colors are presentation, not semantic analysis. The collapsed connection summary counts `source`, `inferred`, `reading`, and `missing` across `steps.length - 1` connections. It does not measure the completeness or correctness of the program's execution path. The CLI reports these counts under `transitions`; partially authored connections produce `warnings` identifying the missing source/target steps.
+
+Older manifests without any transitions still build and keep their `next` explanations without badges. They are not treated as source-backed. When some transitions are present, missing connections are visible as **Connection evidence not authored** and counted in the summary. New authoring should resolve these gaps, using explicit inference when appropriate. Structure or source errors fail the build, while missing optional metadata remains a warning for compatibility.
+
 ## Definition links
+
 
 `definitions` maps a unique ID to `name,path,start,end,description` and optional `side`. The source defaults to head. Include decorators when relevant. Use a complete function/type definition or clearly label an intentional excerpt in `description`.
 

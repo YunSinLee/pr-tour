@@ -28,12 +28,15 @@ class BuilderTests(unittest.TestCase):
         cls.git('config', 'user.name', 'Guide tests')
         cls.git('config', 'user.email', 'tests@example.invalid')
         cls.git('config', 'core.hooksPath', os.devnull)
+        (cls.repo / 'nested').mkdir()
+        (cls.repo / 'nested/bridge.py').write_text('callback = send\n')
         cls.before = ''.join(f'value_{i} = {i}\n' for i in range(1, 101))
         for path, content in {
             'main.py': cls.before.encode(), 'deleted.txt': b'deleted\n',
             'rename.txt': b'same contents\n', 'mode.sh': b'exit 0\n',
             'binary.bin': b'\x00before', 'crlf.txt': b'a\r\nb\r\n',
             'no-newline.txt': b'before',
+            'unchanged.py': '# unchanged 😀\r\nvalue = "<tag>&lt;"\r\n'.encode(),
         }.items():
             (cls.repo / path).write_bytes(content)
         cls.git('add', '.')
@@ -123,6 +126,101 @@ class BuilderTests(unittest.TestCase):
         step['notes'] = [dict(title='Too broad', text='Hidden gap', start=10, end=90)]
         with self.assertRaisesRegex(ValueError, 'visible diff lines'):
             builder.build(self.repo, manifest)
+
+    def transition_manifest(self, basis='source'):
+        manifest = copy.deepcopy(self.manifest)
+        transition = dict(to=manifest['steps'][1]['id'], basis=basis,
+                          evidence=[dict(path='main.py', side='right', start=10, end=10, text='Changed value')])
+        manifest['steps'][0]['transition'] = transition
+        return manifest
+
+    def test_transition_citations_reject_directories_and_submodules(self):
+        for path in ('nested', 'module'):
+            for side in ('left', 'right'):
+                with self.subTest(path=path, side=side):
+                    manifest = self.transition_manifest()
+                    manifest['steps'][0]['transition']['evidence'][0].update(path=path, side=side, start=1, end=1)
+                    with self.assertRaisesRegex(ValueError, 'file blob'):
+                        builder.build(self.repo, manifest)
+
+    def test_transition_citations_use_pinned_source_including_unchanged_and_old_paths(self):
+        manifest = self.transition_manifest()
+        references = manifest['steps'][0]['transition']['evidence']
+        references += [dict(path=path, side=side, start=start, end=end, text='Connection evidence')
+                       for path, side, start, end in [
+                           ('main.py', 'left', 10, 10), ('unchanged.py', 'right', 1, 2),
+                           ('rename.txt', 'left', 1, 1), ('renamed.txt', 'right', 1, 1),
+                           ('deleted.txt', 'left', 1, 1)]]
+        original = copy.deepcopy(manifest)
+        (self.repo / 'main.py').write_text('uncommitted content')
+        try:
+            data = builder.build(self.repo, manifest)
+        finally:
+            (self.repo / 'main.py').write_text(self.after)
+        evidence = data['steps'][0]['transition']['evidence']
+        self.assertEqual(evidence[0]['rows'], [dict(line=10, text='value_10 = 42')])
+        self.assertEqual(evidence[1]['rows'], [dict(line=10, text='value_10 = 10')])
+        self.assertEqual(evidence[2]['rows'], [dict(line=1, text='# unchanged 😀\r'),
+                                              dict(line=2, text='value = "<tag>&lt;"\r')])
+        self.assertEqual(evidence[-1]['rows'][0]['text'], 'deleted')
+        self.assertEqual(manifest, original)
+        self.assertEqual(data['transitionSummary']['source'], 1)
+        self.assertEqual(data['transitionSummary']['missing'], len(manifest['steps']) - 2)
+        self.assertEqual(len(data['warnings']), len(manifest['steps']) - 2)
+
+    def test_transition_rejects_invalid_or_reordered_destinations(self):
+        for target in ['unknown', self.manifest['steps'][0]['id'], self.manifest['steps'][2]['id']]:
+            manifest = self.transition_manifest()
+            manifest['steps'][0]['transition']['to'] = target
+            with self.subTest(target=target), self.assertRaisesRegex(ValueError, 'next reading step'):
+                builder.build(self.repo, manifest)
+        manifest = self.transition_manifest()
+        manifest['steps'][-1]['transition'] = manifest['steps'][0].pop('transition')
+        with self.assertRaisesRegex(ValueError, 'final step'):
+            builder.build(self.repo, manifest)
+
+    def test_transition_rejects_malformed_evidence_before_rendering(self):
+        for field, value in [('side', 'head'), ('side', ''), ('start', True), ('start', 0),
+                             ('end', 1000), ('end', 1), ('path', '../main.py'),
+                             ('path', '/main.py'), ('path', 'missing.py'),
+                             ('path', 'binary.bin'), ('text', ''), ('rows', []),
+                             ('code', 'invented'), ('url', 'https://example.com')]:
+            manifest = self.transition_manifest()
+            manifest['steps'][0]['transition']['evidence'][0][field] = value
+            with self.subTest(field=field, value=value), self.assertRaises((ValueError, subprocess.CalledProcessError)):
+                builder.build(self.repo, manifest)
+        manifest = self.transition_manifest()
+        del manifest['steps'][0]['transition']['evidence'][0]['side']
+        with self.assertRaisesRegex(ValueError, 'side'):
+            builder.build(self.repo, manifest)
+
+    def test_transition_basis_requires_evidence_or_explicit_uncertainty(self):
+        for transition in [None, {}, {'to': self.manifest['steps'][1]['id'], 'basis': 'call'},
+                           {'to': self.manifest['steps'][1]['id'], 'basis': 'source', 'evidence': []},
+                           {'to': self.manifest['steps'][1]['id'], 'basis': 'inferred'},
+                           {'to': self.manifest['steps'][1]['id'], 'basis': 'source', 'uncertainty': 'Maybe'}]:
+            manifest = copy.deepcopy(self.manifest)
+            manifest['steps'][0]['transition'] = transition
+            with self.subTest(transition=transition), self.assertRaises(ValueError):
+                builder.build(self.repo, manifest)
+        for basis in ['inferred', 'reading']:
+            manifest = self.transition_manifest(basis)
+            transition = manifest['steps'][0]['transition']
+            transition.pop('evidence')
+            if basis == 'inferred':
+                transition['uncertainty'] = 'The runtime registration is outside this repository.'
+            data = builder.build(self.repo, manifest)
+            self.assertEqual(data['transitionSummary'][basis], 1)
+            self.assertEqual(data['steps'][0]['transition']['evidence'], [])
+
+    def test_legacy_and_single_step_have_no_invented_connections(self):
+        data = builder.build(self.repo, self.manifest)
+        self.assertFalse(data['transitionSummary']['enabled'])
+        self.assertEqual(data['transitionSummary']['missing'], len(data['steps']) - 1)
+        self.assertEqual(data['warnings'], [])
+        summary, warnings = builder.build_transitions(self.repo, self.manifest['steps'][:1], self.head, self.base)
+        self.assertEqual(summary, dict(enabled=False, total=0, source=0, inferred=0, reading=0, missing=0))
+        self.assertEqual(warnings, [])
 
     def test_deleted_line_note_uses_base(self):
         manifest = copy.deepcopy(self.manifest)

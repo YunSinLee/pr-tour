@@ -44,9 +44,11 @@ Invalid input, a changed text buffer after checking, or a failed file read canno
 
 ## Storage and portability
 
-Saved comments use browser `localStorage`, keyed by the PR URL, merge base, and head. Language and reading-step changes do not change the key. The same snapshot can reuse its comments within the same available browser storage; a new snapshot starts a separate collection. No comments are written into the HTML, manifest, repository, or GitHub, and no server or AI request is made.
+Saved comments use browser IndexedDB, keyed by the PR URL, merge base, and head. Language and reading-step changes do not change the key. The same snapshot can reuse its comments within the same available browser storage; a new snapshot starts a separate collection. No comments are written into the HTML, manifest, repository, or GitHub, and no server or AI request is made.
 
-Open lists do not live-sync across tabs. When Web Locks are available, saves serialize changes for the snapshot, read the latest stored collection, and merge only the current tab's additions, edits, and deletions. Unrelated comments survive. A conflicting change to the same ID is not overwritten. Without Web Locks, a changed stored collection blocks the save conservatively. In either conflict case, the current tab retains its edits in memory and warns the reader to download JSON before reloading.
+Open lists do not live-sync across tabs. A save reads and merges the latest collection in one IndexedDB read/write transaction, applying only the current tab's additions, edits, and deletions. Unrelated comments survive. A conflicting change to the same ID is not overwritten; the current tab retains its edits in memory and warns the reader to download JSON before reloading.
+
+When a snapshot has no IndexedDB record yet, the renderer imports its existing `localStorage` comments without deleting that legacy copy. Older HTML files continue to use their original store and do not sync subsequent changes with the new renderer. Export JSON from an older guide and import it into the regenerated guide to transfer later edits.
 
 Local-file URLs, embedded viewers, privacy settings, storage quotas, and clearing browser data can affect persistence. The UI reports unavailable storage and retains current-session comments for export. Unreadable stored records are not overwritten automatically. Users should download JSON for durable retention or sharing and import it into the same guide snapshot elsewhere; automatic cross-device sync is not implemented. Closing an editor keeps its unsaved text in memory until the page reloads or closes. **Cancel** discards that editor draft.
 

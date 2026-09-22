@@ -27,8 +27,15 @@ async function withGuide(language, options, run) {
     await context.route(/^https?:/, route => route.abort());
     const url = options.file ? pathToFileURL(resolve(`docs/demo.${language}.html`)).href : `http://${options.secure ? 'localhost' : 'tour.test'}/guide.html`;
     if (!options.file) await context.route(url, route => route.fulfill({contentType:'text/html',body:html}));
+    if (options.legacy !== undefined) {
+      const data = JSON.parse(html.match(/<script type="application\/json" id="guide-data">([\s\S]*?)<\/script>/)[1]);
+      const key = 'pr-tour.review.v1:' + JSON.stringify([data.url, data.mergeBase, data.head]);
+      await context.addInitScript(({key, text}) => localStorage.setItem(key, text),
+        {key, text:typeof options.legacy === 'string' ? options.legacy : JSON.stringify(options.legacy)});
+    }
     if (options.init) await context.addInitScript(options.init);
     await page.goto(url + '#entry');
+    if (!options.loading) await idle(page);
     if (options.mobile) await page.locator('#code-tab').tap();
     await run(page, changeData);
     assert.deepEqual(errors, []);
@@ -77,15 +84,17 @@ for (const language of ['en', 'ko']) {
       await chooseRange(page, 207, 213); await save(page, text);
       const backup = await exported(page);
       await page.locator('.review-card-actions button').last().click();
-      await page.reload(); await page.locator('#review-open').click();
+      await idle(page);
+      await page.reload(); await idle(page); await page.locator('#review-open').click();
       assert.equal(await page.locator('.review-card').count(), 0);
       await previewImport(page, backup, true);
       await page.locator('#review-import-preview').waitFor({state:'visible'});
       const sheet = await page.locator('#review-dialog').boundingBox();
       assert.ok(sheet.x >= 0 && sheet.x + sheet.width <= 391 && sheet.y >= 0 && sheet.y + sheet.height <= 845);
       await page.locator('#review-import-apply').click();
+      await idle(page);
       assert.deepEqual(await exported(page), backup, 'round trip preserves all exported fields');
-      await page.reload(); await page.locator('#review-open').click();
+      await page.reload(); await idle(page); await page.locator('#review-open').click();
       assert.equal(await page.locator('.review-body').textContent(), text);
       await page.locator('.review-location').click();
       await page.waitForFunction(() => document.querySelector('#diff-body tr[data-line="207"]')?.classList.contains('review-selected'));
@@ -151,7 +160,7 @@ for (const language of ['en', 'ko']) {
       assert.equal(await page.locator('#review-text').inputValue(), 'Draft remains');
       await page.locator('#review-save').click();
       assert.equal((await exported(page)).comments[0].startLine, 207);
-      await page.reload();
+      await page.reload(); await idle(page);
       await page.locator('#review-open').click();
       assert.equal(await page.locator('.review-body').textContent(), 'Draft remains');
       await page.locator('#review-copy').click();
@@ -249,10 +258,10 @@ test('snapshot isolation, clipboard success and storage failure keep comments ex
     await page.locator('#review-copy').click();
     assert.equal(await page.evaluate(() => JSON.parse(window.copiedReview).comments[0].body), 'First snapshot');
     changeData(data => { data.head = 'f'.repeat(40); });
-    await page.reload(); await page.locator('#review-open').click();
+    await page.reload(); await idle(page); await page.locator('#review-open').click();
     assert.equal(await page.locator('.review-card').count(), 0);
     await page.locator('#review-close').click();
-    await page.evaluate(() => { Storage.prototype.setItem = () => { throw new Error('quota'); }; });
+    await page.evaluate(() => { IDBObjectStore.prototype.put = () => { throw new DOMException('Full', 'QuotaExceededError'); }; });
     await chooseRange(page, 207); await save(page, 'Memory only');
     assert.match(await page.locator('#review-storage').textContent(), /unavailable/);
     assert.equal((await exported(page)).comments[0].body, 'Memory only');
@@ -285,12 +294,14 @@ test('import previews preserve local edits by default, replace explicitly and sk
     assert.equal(await page.locator('#review-import-policy').inputValue(), 'keep');
     assert.equal(await page.locator('#review-import-conflicts img').count(), 0);
     await page.locator('#review-import-apply').click();
+    await idle(page);
     let out = await exported(page);
     assert.deepEqual(out.comments.map(c => c.body), ['Local version','Unchanged','Added from backup']);
     await previewImport(page, incoming);
     assert.equal(await page.locator('#review-import-apply').isEnabled(), false);
     await page.locator('#review-import-policy').selectOption('replace');
     await page.locator('#review-import-apply').click();
+    await idle(page);
     out = await exported(page);
     assert.deepEqual(out, incoming);
     assert.equal(await page.locator('.review-body img').count(), 0);
@@ -308,7 +319,7 @@ test('invalid files reject atomically without touching saved comments', async ()
   await withGuide('en', {}, async page => {
     await chooseRange(page, 207); await save(page, 'Keep this');
     const backup = await exported(page);
-    const stored = await page.evaluate(() => JSON.stringify(Object.entries(localStorage).filter(([key]) => key.startsWith('pr-tour.review'))));
+    const stored = await reviewStorage(page);
     const mutations = [
       data => { data.schemaVersion = 2; },
       data => { data.prUrl += '9'; },
@@ -333,12 +344,12 @@ test('invalid files reject atomically without touching saved comments', async ()
       assert.equal(await page.locator('#review-import-preview').isHidden(), true);
       await page.locator('#review-import-cancel').click();
       assert.equal(await page.locator('#review-items .review-body').textContent(), 'Keep this');
-      assert.equal(await page.evaluate(() => JSON.stringify(Object.entries(localStorage).filter(([key]) => key.startsWith('pr-tour.review')))), stored);
+      assert.equal(await reviewStorage(page), stored);
     }
     await previewImport(page, '{broken json', true);
     await page.waitForFunction(() => document.getElementById('review-import-error').textContent.length > 0);
     await page.locator('#review-import-cancel').click();
-    await page.reload(); await page.locator('#review-open').click();
+    await page.reload(); await idle(page); await page.locator('#review-open').click();
     assert.deepEqual(await exported(page), backup);
   });
 });
@@ -354,9 +365,11 @@ test('base-side rename imports map back to the current file and work offline wit
     await chooseRange(page, 68, 68, 'left'); await save(page, 'Old path');
     const backup = await exported(page);
     await page.locator('.review-card-actions button').last().click();
-    await page.evaluate(() => { Storage.prototype.setItem = () => { throw new Error('quota'); }; });
+    await idle(page);
+    await page.evaluate(() => { IDBObjectStore.prototype.put = () => { throw new DOMException('Full', 'QuotaExceededError'); }; });
     await previewImport(page, backup);
     await page.locator('#review-import-apply').click();
+    await idle(page);
     assert.match(await page.locator('#review-storage').textContent(), /unavailable/);
     assert.deepEqual(await exported(page), backup);
     await page.locator('.review-location').click();
@@ -369,6 +382,7 @@ test('file URLs can restore a backup; large inputs and cancelled previews leave 
     await chooseRange(page, 207); await save(page, 'Offline');
     const backup = await exported(page);
     await page.locator('.review-card-actions button').last().click();
+    await idle(page);
     await previewImport(page, backup, true);
     await page.locator('#review-import-preview').waitFor({state:'visible'});
     await page.locator('#review-import-cancel').click();
@@ -376,6 +390,7 @@ test('file URLs can restore a backup; large inputs and cancelled previews leave 
     await previewImport(page, backup, true);
     await page.locator('#review-import-preview').waitFor({state:'visible'});
     await page.locator('#review-import-apply').click();
+    await idle(page);
     assert.deepEqual(await exported(page), backup);
     await previewImport(page, ' '.repeat(10 * 1024 * 1024 + 1), true);
     await page.waitForFunction(() => document.getElementById('review-import-error').textContent.includes('10 MiB'));
@@ -385,8 +400,24 @@ test('file URLs can restore a backup; large inputs and cancelled previews leave 
   });
 });
 
+async function reviewStorage(page, replacement) {
+  return page.evaluate(({replace, replacement}) => new Promise((resolve, reject) => {
+    const data = JSON.parse(document.getElementById('guide-data').textContent);
+    const key = 'pr-tour.review.v1:' + JSON.stringify([data.url, data.mergeBase, data.head]);
+    const request = indexedDB.open('pr-tour-review', 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const db = request.result;
+      const tx = db.transaction('snapshots', replace ? 'readwrite' : 'readonly');
+      const store = tx.objectStore('snapshots');
+      const operation = replace ? store.put(replacement, key) : store.get(key);
+      tx.oncomplete = () => { db.close(); resolve(operation.result); };
+      tx.onabort = () => { db.close(); reject(tx.error); };
+    };
+  }), {replace:replacement !== undefined, replacement});
+}
 async function storedBodies(page) {
-  return page.evaluate(() => JSON.parse(Object.entries(localStorage).find(([key]) => key.startsWith('pr-tour.review'))[1]).map(c => c.body));
+  return JSON.parse(await reviewStorage(page)).map(c => c.body);
 }
 async function idle(page) {
   await page.waitForFunction(() => document.getElementById('review-dialog').getAttribute('aria-busy') === 'false');
@@ -401,10 +432,20 @@ async function holdWrites(page) {
 }
 
 test('two tabs serialize simultaneous additions and preserve unrelated edits, deletions, undo and imports', async () => {
-  await withGuide('en', {secure:true}, async a => {
+  await withGuide('en', {secure:true, init:() => {
+    // Reproduce WebKit's stale per-process localStorage view deterministically.
+    // A shared Web Lock does not flush this cache before its next holder reads.
+    const get = Storage.prototype.getItem;
+    const cache = new Map();
+    Storage.prototype.getItem = function(key) {
+      if (!key.startsWith('pr-tour.review')) return get.call(this, key);
+      if (!cache.has(key)) cache.set(key, get.call(this, key));
+      return cache.get(key);
+    };
+  }}, async a => {
     assert.equal(await a.evaluate(() => Boolean(navigator.locks?.request)), true);
     const b = await a.context().newPage();
-    await b.goto(a.url());
+    await b.goto(a.url()); await idle(b);
     await Promise.all([chooseRange(a,207), chooseRange(b,208)]);
     await a.locator('#review-text').fill('A'); await b.locator('#review-text').fill('B');
     await holdWrites(a);
@@ -413,9 +454,14 @@ test('two tabs serialize simultaneous additions and preserve unrelated edits, de
     assert.equal(await b.locator('#review-save').isEnabled(), false);
     await a.evaluate(() => window.releaseReviewLock());
     await Promise.all([idle(a), idle(b)]);
+    const fresh = await a.context().newPage(); await fresh.goto(a.url()); await idle(fresh);
+    await fresh.locator('#review-open').click();
+    assert.deepEqual((await fresh.locator('.review-body').allTextContents()).sort(), ['A','B']);
+    await fresh.close();
     assert.deepEqual((await storedBodies(a)).sort(), ['A','B']);
 
     await Promise.all([a.reload(), b.reload()]);
+    await Promise.all([idle(a), idle(b)]);
     await Promise.all([a.locator('#review-open').click(), b.locator('#review-open').click()]);
     const card = (page, body) => page.locator('.review-card').filter({has:page.locator('.review-body', {hasText:new RegExp(`^${body}$`)})});
     await card(a,'A').locator('.review-card-actions button').first().click(); await save(a,'A edited');
@@ -430,7 +476,7 @@ test('two tabs serialize simultaneous additions and preserve unrelated edits, de
     assert.deepEqual((await storedBodies(a)).sort(), ['B edited','Imported in B']);
     await a.locator('#review-feedback button').click(); await idle(a);
     assert.deepEqual((await storedBodies(a)).sort(), ['A edited','B edited','Imported in B']);
-    await b.reload(); await b.locator('#review-open').click();
+    await b.reload(); await idle(b); await b.locator('#review-open').click();
     assert.deepEqual((await b.locator('.review-body').allTextContents()).sort(), ['A edited','B edited','Imported in B']);
   });
 });
@@ -438,7 +484,7 @@ test('two tabs serialize simultaneous additions and preserve unrelated edits, de
 test('same-ID conflicts preserve the other tab and keep local edits exportable before reload', async () => {
   await withGuide('en', {secure:true}, async a => {
     await chooseRange(a,207); await save(a,'Original');
-    const b = await a.context().newPage(); await b.goto(a.url()); await b.locator('#review-open').click();
+    const b = await a.context().newPage(); await b.goto(a.url()); await idle(b); await b.locator('#review-open').click();
     await a.locator('.review-card-actions button').first().click(); await save(a,'Saved in A');
     await b.locator('.review-card-actions button').first().click(); await save(b,'Unsaved in B');
     assert.deepEqual(await storedBodies(b), ['Saved in A']);
@@ -447,7 +493,7 @@ test('same-ID conflicts preserve the other tab and keep local edits exportable b
     await b.locator('.review-card-actions button').first().click(); await save(b,'Still exportable in B');
     assert.deepEqual(await storedBodies(b), ['Saved in A']);
     assert.equal((await exported(b)).comments[0].body, 'Still exportable in B');
-    await b.reload(); await b.locator('#review-open').click();
+    await b.reload(); await idle(b); await b.locator('#review-open').click();
     assert.equal(await b.locator('.review-body').textContent(), 'Saved in A');
   });
 });
@@ -455,7 +501,7 @@ test('same-ID conflicts preserve the other tab and keep local edits exportable b
 test('a stale deletion cannot erase another tab edit and remains undoable in memory', async () => {
   await withGuide('en', {secure:true}, async a => {
     await chooseRange(a,207); await save(a,'Original');
-    const b = await a.context().newPage(); await b.goto(a.url()); await b.locator('#review-open').click();
+    const b = await a.context().newPage(); await b.goto(a.url()); await idle(b); await b.locator('#review-open').click();
     await a.locator('.review-card-actions button').first().click(); await save(a,'Saved in A');
     await b.locator('.review-card-actions button').last().click(); await idle(b);
     assert.deepEqual(await storedBodies(b), ['Saved in A']);
@@ -466,14 +512,14 @@ test('a stale deletion cannot erase another tab edit and remains undoable in mem
   });
 });
 
-test('without Web Locks a stale tab refuses storage changes and exports its current comments', async () => {
+test('without Web Locks transactions merge unrelated additions from stale tabs', async () => {
   await withGuide('en', {secure:true,init:() => Object.defineProperty(navigator,'locks',{value:undefined})}, async a => {
-    const b = await a.context().newPage(); await b.goto(a.url());
+    const b = await a.context().newPage(); await b.goto(a.url()); await idle(b);
     await chooseRange(a,207); await save(a,'Saved in A');
     await chooseRange(b,208); await save(b,'Local in B');
-    assert.deepEqual(await storedBodies(b), ['Saved in A']);
-    assert.match(await b.locator('#review-storage').textContent(), /another tab.*Download JSON before reloading/);
-    assert.equal((await exported(b)).comments[0].body, 'Local in B');
+    assert.deepEqual(await storedBodies(b), ['Saved in A','Local in B']);
+    assert.match(await b.locator('#review-storage').textContent(), /Saved in this browser/);
+    assert.deepEqual((await exported(b)).comments.map(c => c.body), ['Saved in A','Local in B']);
   });
 });
 
@@ -513,16 +559,119 @@ test('queued saves do not reopen a dismissed sheet or discard a newer editor dra
 });
 
 test('corrupt storage appearing after load is preserved while the current comment can be exported', async () => {
-  await withGuide('en', {secure:true}, async page => {
-    await chooseRange(page,207); await save(page,'Original');
-    const corrupt = '{broken';
-    await page.evaluate(value => {
-      const key = Object.keys(localStorage).find(key => key.startsWith('pr-tour.review'));
-      localStorage.setItem(key,value);
-    }, corrupt);
-    await page.locator('.review-card-actions button').first().click(); await save(page,'Memory only');
+  for (const corrupt of ['{broken',null]) {
+    await withGuide('en', {secure:true}, async page => {
+      await chooseRange(page,207); await save(page,'Original');
+      await reviewStorage(page, corrupt);
+      await page.locator('.review-card-actions button').first().click(); await save(page,'Memory only');
+      assert.match(await page.locator('#review-storage').textContent(), /unavailable/);
+      assert.equal((await exported(page)).comments[0].body, 'Memory only');
+      assert.equal(await reviewStorage(page), corrupt);
+    });
+  }
+});
+
+const legacyComment = {id:'legacy-note',file:'starlette/websockets.py',side:'right',start:207,end:209,
+  body:'Legacy comment',createdAt:'2026-09-21T00:00:00.000Z',updatedAt:'2026-09-21T00:00:00.000Z'};
+
+async function legacyText(page) {
+  return page.evaluate(() => Object.entries(localStorage).find(([key]) => key.startsWith('pr-tour.review'))?.[1]);
+}
+
+test('legacy comments migrate once without deleting the old copy, including file URLs', async () => {
+  for (const file of [false,true]) {
+    await withGuide('en', {file,legacy:[legacyComment]}, async page => {
+      const legacy = await legacyText(page);
+      assert.deepEqual(await storedBodies(page), ['Legacy comment']);
+      await page.locator('#review-open').click();
+      assert.equal(await page.locator('.review-body').textContent(), 'Legacy comment');
+      await page.locator('.review-card-actions button').last().click(); await idle(page);
+      assert.deepEqual(await storedBodies(page), []);
+      assert.equal(await legacyText(page), legacy, 'migration and later writes leave the legacy key intact');
+      await page.reload(); await idle(page); await page.locator('#review-open').click();
+      assert.equal(await page.locator('.review-card').count(), 0, 'an empty canonical record is not migrated again');
+      assert.equal(await legacyText(page), legacy);
+    });
+  }
+});
+
+test('blocked database opening keeps readable legacy comments exportable', async () => {
+  for (const blockedEvent of [false,true]) {
+    await withGuide('en', {legacy:[legacyComment],init:blockedEvent ? () => {
+      IDBFactory.prototype.open = () => {
+        const request = {};
+        setTimeout(() => request.onblocked?.(), 0);
+        return request;
+      };
+    } : () => {
+      Object.defineProperty(window, 'indexedDB', {get() { throw new DOMException('Blocked', 'SecurityError'); }});
+    }}, async page => {
+      await page.locator('#review-open').click();
+      assert.match(await page.locator('#review-storage').textContent(), /unavailable/);
+      assert.equal((await exported(page)).comments[0].body, 'Legacy comment');
+      assert.equal(await legacyText(page), JSON.stringify([legacyComment]));
+      await page.locator('.review-card-actions button').first().click(); await save(page,'Exportable edit');
+      assert.equal((await exported(page)).comments[0].body, 'Exportable edit');
+      assert.equal(await legacyText(page), JSON.stringify([legacyComment]));
+    });
+  }
+});
+
+test('a failed migration preserves the old data and keeps it available for export', async () => {
+  await withGuide('en', {legacy:[legacyComment],init:() => {
+    IDBObjectStore.prototype.put = () => { throw new DOMException('Full', 'QuotaExceededError'); };
+  }}, async page => {
+    await page.locator('#review-open').click();
     assert.match(await page.locator('#review-storage').textContent(), /unavailable/);
-    assert.equal((await exported(page)).comments[0].body, 'Memory only');
-    assert.equal(await page.evaluate(() => Object.entries(localStorage).find(([key]) => key.startsWith('pr-tour.review'))[1]), corrupt);
+    assert.equal((await exported(page)).comments[0].body, 'Legacy comment');
+    assert.equal(await reviewStorage(page), undefined, 'aborted migration creates no canonical record');
+    assert.equal(await legacyText(page), JSON.stringify([legacyComment]));
+  });
+});
+
+test('an aborted write retains durable comments and exports the unsaved edit', async () => {
+  await withGuide('en', {}, async page => {
+    await chooseRange(page,207); await save(page,'Durable comment');
+    const stored = await reviewStorage(page);
+    await page.evaluate(() => {
+      const put = IDBObjectStore.prototype.put;
+      IDBObjectStore.prototype.put = function(...args) {
+        const request = put.apply(this,args);
+        this.transaction.abort();
+        return request;
+      };
+    });
+    await page.locator('.review-card-actions button').first().click(); await save(page,'Unsaved edit');
+    assert.match(await page.locator('#review-storage').textContent(), /unavailable/);
+    assert.equal(await reviewStorage(page), stored);
+    assert.equal((await exported(page)).comments[0].body, 'Unsaved edit');
+  });
+});
+
+test('loading saved comments blocks mutations and preserves a newly typed draft', async () => {
+  await withGuide('en', {loading:true,legacy:[legacyComment],init:() => {
+    const open = IDBFactory.prototype.open;
+    IDBFactory.prototype.open = function(...args) {
+      const request = open.apply(this,args);
+      request.addEventListener('success', event => {
+        const complete = request.onsuccess;
+        request.onsuccess = null;
+        window.releaseReviewLoad = () => complete.call(request,event);
+      }, {once:true});
+      return request;
+    };
+  }}, async page => {
+    await page.waitForFunction(() => typeof window.releaseReviewLoad === 'function');
+    await page.locator('#review-open').click();
+    assert.match(await page.locator('#review-storage').textContent(), /Loading saved comments/);
+    assert.equal(await page.locator('.review-card-actions button').last().isDisabled(), true);
+    await page.locator('#review-close').click();
+    await chooseRange(page,208); await page.locator('#review-text').fill('Typed while loading');
+    assert.equal(await page.locator('#review-save').isDisabled(), true);
+    await page.evaluate(() => window.releaseReviewLoad()); await idle(page);
+    assert.equal(await page.locator('#review-editor').isVisible(), true);
+    assert.equal(await page.locator('#review-text').inputValue(), 'Typed while loading');
+    await save(page,'Typed while loading');
+    assert.deepEqual((await page.locator('.review-body').allTextContents()).sort(), ['Legacy comment','Typed while loading']);
   });
 });

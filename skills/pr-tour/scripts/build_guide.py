@@ -40,6 +40,8 @@ def main():
                           'files': len(data['files']), 'steps': len(data['steps']),
                           'definitions': len(data['definitions']), 'bytes': len(page.encode()),
                           'unavailable': [p for p, f in data['files'].items() if f.get('notice')],
+                          'transitions': data['transitionSummary'],
+                          'warnings': data['warnings'],
                           'source_lines_verified': True}, ensure_ascii=False))
     except (ValueError, KeyError, TypeError, OSError, subprocess.CalledProcessError) as error:
         parser.exit(1, f'Guide build failed: {error}\n')
@@ -109,6 +111,7 @@ def build(repo, manifest):
             require(urlsplit(step['finding']['url']).scheme == 'https', 'Review link must use HTTPS')
     require({s['file'] for s in steps} == set(files),
             'Every changed file needs a reading step, including deleted, binary, and metadata-only files.')
+    transitions, warnings = build_transitions(repo, steps, head, merge)
     language = manifest.get('language', 'ko')
     if language == 'en':
         for file in files.values():
@@ -123,6 +126,7 @@ def build(repo, manifest):
                 title=manifest['title'], overview=manifest.get('overview', localize('변경된 코드의 역할과 연결을 따라 읽습니다.', language)),
                 head=head, base=base, mergeBase=merge, date=manifest.get('date', date.today().isoformat()),
                 files=files, steps=steps, definitions=definitions,
+                transitionSummary=transitions, warnings=warnings,
                 added=sum(f['added'] or 0 for f in files.values()),
                 removed=sum(f['removed'] or 0 for f in files.values()))
 
@@ -170,6 +174,32 @@ def validate_manifest(manifest):
         if 'reference' in step:
             fields(step['reference'], ('label', 'text'), f'{label}.reference')
             location(step['reference'], f'{label}.reference')
+        if 'transition' in step:
+            transition = step['transition']
+            target = f'{label}.transition'
+            fields(transition, ('to', 'basis'), target)
+            require(set(transition) <= {'to', 'basis', 'evidence', 'uncertainty'},
+                    f'{target}: unknown field')
+            require(index + 1 < len(steps), f'{target}: the final step cannot have a transition')
+            require(isinstance(steps[index + 1], dict) and transition['to'] == steps[index + 1].get('id'),
+                    f'{target}: to must match the next reading step')
+            require(transition['basis'] in ('source', 'inferred', 'reading'), f'{target}: invalid basis')
+            if transition['basis'] == 'inferred':
+                string(transition.get('uncertainty'), f'{target}.uncertainty')
+            else:
+                require('uncertainty' not in transition,
+                        f'{target}: use inferred when the connection has uncertainty')
+            evidence = transition.get('evidence', [])
+            array(evidence, f'{target}.evidence')
+            require(transition['basis'] != 'source' or evidence,
+                    f'{target}: source requires at least one evidence range')
+            for number, ref in enumerate(evidence):
+                evidence_label = f'{target}.evidence[{number}]'
+                fields(ref, ('text', 'side'), evidence_label)
+                location(ref, evidence_label)
+                require(set(ref) <= {'path', 'side', 'start', 'end', 'text'},
+                        f'{evidence_label}: author ranges, not source code or URLs')
+                require(ref['side'] in ('left', 'right'), f'{evidence_label}: invalid side')
         if 'recap' in step:
             array(step['recap'], f'{label}.recap')
             for item in step['recap']:
@@ -203,6 +233,34 @@ def validate_manifest(manifest):
         require(type(link.get('line')) is int, f'{label}.line: expected an integer')
         if 'column' in link:
             require(type(link['column']) is int, f'{label}.column: expected an integer')
+
+
+def build_transitions(repo, steps, head, merge):
+    """Verify citations, not the author's interpretation of their relationship."""
+    summary = dict(enabled=any('transition' in step for step in steps),
+                   total=max(0, len(steps) - 1), source=0, inferred=0, reading=0, missing=0)
+    warnings = []
+    sources = {}
+    for index, step in enumerate(steps[:-1]):
+        transition = step.get('transition')
+        if transition is None:
+            summary['missing'] += 1
+            if summary['enabled']:
+                warnings.append(f'{step["id"]} -> {steps[index + 1]["id"]}: transition evidence not authored')
+            continue
+        summary[transition['basis']] += 1
+        for ref in transition.setdefault('evidence', []):
+            key = (ref['path'], ref['side'])
+            if key not in sources:
+                snapshot = merge if ref['side'] == 'left' else head
+                require(git(repo, 'cat-file', '-t', f'{snapshot}:{ref["path"]}').strip() == b'blob',
+                        'Transition evidence must reference a file blob, not a directory or submodule')
+                sources[key] = source(repo, snapshot, ref['path'])
+                require(not any('\0' in line for line in sources[key]), 'Transition evidence must be text source')
+            lines = sources[key]
+            check_range(ref, len(lines), f'{step["id"]} transition evidence')
+            ref['rows'] = [dict(line=i, text=lines[i-1]) for i in range(ref['start'], ref['end']+1)]
+    return summary, warnings
 
 
 def commit(repo, ref):
@@ -381,6 +439,8 @@ def check_range(spec, length, label):
 def render(template, data):
     assets = Path(__file__).resolve().parents[1] / 'assets'
     template = template.replace('__REVIEW_CSS__', (assets / 'review.css').read_text(encoding='utf-8'))
+    template = template.replace('__TRANSITION_CSS__', (assets / 'transitions.css').read_text(encoding='utf-8'))
+    template = template.replace('__LAYOUT_CSS__', (assets / 'layout.css').read_text(encoding='utf-8'))
     template = localize(template, data.get('language', 'ko'))
     template = template.replace('<html lang="ko">', f'<html lang="{data.get("language", "ko")}">')
     values = {'PR_NUMBER': data['number'], 'PR_TITLE': data['title'], 'PR_URL': data['url'],
@@ -398,7 +458,9 @@ def render(template, data):
                         ['vendor/highlightjs/highlight.min.js', 'syntax.js'])
     # Bundle pinned local assets and their license; viewing never needs a CDN.
     reviews = localize((assets / 'review.js').read_text(encoding='utf-8'), data.get('language', 'ko'))
-    bundled = f'/* highlight.js 11.12.0\n{license_text}*/\n{scripts}\n{reviews}'
+    transitions = localize((assets / 'transitions.js').read_text(encoding='utf-8'), data.get('language', 'ko'))
+    layout = localize((assets / 'layout.js').read_text(encoding='utf-8'), data.get('language', 'ko'))
+    bundled = f'/* highlight.js 11.12.0\n{license_text}*/\n{scripts}\n{reviews}\n{transitions}\n{layout}'
     bundled = re.sub(r'</script', r'<\\/script', bundled, flags=re.IGNORECASE)
     template = template.replace('__SYNTAX_ASSETS__', bundled)
     return template.replace('__GUIDE_DATA__', json.dumps(data, ensure_ascii=False).replace('<', '\\u003c'))

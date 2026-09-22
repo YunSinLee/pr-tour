@@ -22,7 +22,11 @@
         }
       ],
       "check": "Is the connection accepted before the denial response is sent?",
-      "next": "Start with the new WebSocket method."
+      "next": "Move from the documented behavior to the method a caller uses; this is the reading order, not a runtime call.",
+      "transition": {
+        "to": "entry",
+        "basis": "reading"
+      }
     },
     {
       "id": "entry",
@@ -40,7 +44,34 @@
         }
       ],
       "check": "Which method receives the messages emitted by Response?",
-      "next": "Open Response, then inspect how it labels outgoing messages."
+      "next": "The example test constructs a base Response. send_denial_response calls that object, so follow the base Response.__call__ implementation to message creation. Subclass overrides need separate inspection.",
+      "transition": {
+        "to": "serialize",
+        "basis": "source",
+        "evidence": [
+          {
+            "path": "tests/test_websockets.py",
+            "side": "right",
+            "start": 309,
+            "end": 314,
+            "text": "The test constructs a base Response and passes it to the denial-response method."
+          },
+          {
+            "path": "starlette/websockets.py",
+            "side": "right",
+            "start": 207,
+            "end": 209,
+            "text": "After checking extension support, this calls the supplied response object."
+          },
+          {
+            "path": "starlette/responses.py",
+            "side": "right",
+            "start": 150,
+            "end": 159,
+            "text": "The base Response callable produces the start and body messages."
+          }
+        ]
+      }
     },
     {
       "id": "serialize",
@@ -58,7 +89,34 @@
         }
       ],
       "check": "Why would prefixing only the start message be insufficient?",
-      "next": "Those messages return to WebSocket.send, where the connection changes state."
+      "next": "The response receives WebSocket.self.send as its send callback. The base Response sends its start message through that callback, so follow WebSocket.send to its state handling.",
+      "transition": {
+        "to": "response-state",
+        "basis": "source",
+        "evidence": [
+          {
+            "path": "starlette/websockets.py",
+            "side": "right",
+            "start": 207,
+            "end": 209,
+            "text": "The third argument to Response is the current WebSocket send method."
+          },
+          {
+            "path": "starlette/responses.py",
+            "side": "right",
+            "start": 150,
+            "end": 158,
+            "text": "The send argument receives the start message."
+          },
+          {
+            "path": "starlette/websockets.py",
+            "side": "right",
+            "start": 80,
+            "end": 86,
+            "text": "WebSocket.send handles the start message and enters the response state."
+          }
+        ]
+      }
     },
     {
       "id": "response-state",
@@ -82,7 +140,34 @@
         }
       ],
       "check": "Does starting a denial response mark the WebSocket as accepted?",
-      "next": "Next, follow the response body and the terminal state."
+      "next": "Handling the start message sets the RESPONSE state. The base Response sends the body next, so follow the RESPONSE branch of the same send method.",
+      "transition": {
+        "to": "finish-body",
+        "basis": "source",
+        "evidence": [
+          {
+            "path": "starlette/websockets.py",
+            "side": "right",
+            "start": 80,
+            "end": 86,
+            "text": "The start message changes the connection state to RESPONSE."
+          },
+          {
+            "path": "starlette/responses.py",
+            "side": "right",
+            "start": 150,
+            "end": 159,
+            "text": "After sending the start message returns, the body is sent through the same callback."
+          },
+          {
+            "path": "starlette/websockets.py",
+            "side": "right",
+            "start": 101,
+            "end": 110,
+            "text": "The next call handles the body and its completion in the RESPONSE branch."
+          }
+        ]
+      }
     },
     {
       "id": "finish-body",
@@ -100,7 +185,63 @@
         }
       ],
       "check": "What keeps a multi-chunk response open between chunks?",
-      "next": "Now switch to the test client that receives these messages."
+      "next": "In the test path, the send callback supplied to the app queues messages, and the session receives from that queue. Follow the session entry code that passes the first message to denial-response handling.",
+      "transition": {
+        "to": "test-transport",
+        "basis": "inferred",
+        "evidence": [
+          {
+            "path": "starlette/testclient.py",
+            "side": "right",
+            "start": 145,
+            "end": 147,
+            "text": "The test session supplies its _asgi_send callback when running the app."
+          },
+          {
+            "path": "tests/test_websockets.py",
+            "side": "right",
+            "start": 309,
+            "end": 314,
+            "text": "This test app passes its send argument to the WebSocket constructor."
+          },
+          {
+            "path": "starlette/websockets.py",
+            "side": "right",
+            "start": 26,
+            "end": 30,
+            "text": "WebSocket stores the supplied callback as _send."
+          },
+          {
+            "path": "starlette/websockets.py",
+            "side": "right",
+            "start": 101,
+            "end": 110,
+            "text": "The body message is forwarded through _send."
+          },
+          {
+            "path": "starlette/testclient.py",
+            "side": "right",
+            "start": 166,
+            "end": 167,
+            "text": "Messages sent by the app are placed on the test session queue."
+          },
+          {
+            "path": "starlette/testclient.py",
+            "side": "right",
+            "start": 211,
+            "end": 215,
+            "text": "receive takes a message or exception from that same queue."
+          },
+          {
+            "path": "starlette/testclient.py",
+            "side": "right",
+            "start": 110,
+            "end": 114,
+            "text": "On session entry, the first received message is passed to _raise_on_close."
+          }
+        ],
+        "uncertainty": "These excerpts show the test app and both ends of its callback/queue path. They omit the full TestClient app-wrapping and session-construction path, so the callback identity across that wiring is inferred. They do not establish a real network server’s transport behavior."
+      }
     },
     {
       "id": "test-transport",
@@ -130,13 +271,17 @@
         }
       ],
       "check": "Where are multiple body chunks joined, and what stops that loop?",
-      "next": "The tests below check these preserved values.",
+      "next": "After reading how the exception carries response data, inspect tests that check the status, headers, and body seen by the caller. This move follows the explanation rather than runtime order.",
       "reference": {
         "path": "starlette/testclient.py",
         "start": 106,
         "end": 120,
         "label": "Reference · session entry",
         "text": "Session entry sends websocket.connect and passes the first server message to _raise_on_close. This is why denial raises while entering the context manager."
+      },
+      "transition": {
+        "to": "assert-response",
+        "basis": "reading"
       }
     },
     {
@@ -161,7 +306,11 @@
         }
       ],
       "check": "Which assertions would fail if the client kept only the last chunk?",
-      "next": "Finally, inspect unsupported servers and invalid message order."
+      "next": "After the successful denial-response checks, compare failure cases for an unsupported extension and invalid message order.",
+      "transition": {
+        "to": "reject-invalid",
+        "basis": "reading"
+      }
     },
     {
       "id": "reject-invalid",

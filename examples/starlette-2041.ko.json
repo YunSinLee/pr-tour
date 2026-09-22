@@ -22,7 +22,11 @@
         }
       ],
       "check": "거절 응답을 보내기 전에 연결을 수락해야 할까요?",
-      "next": "새로 추가한 WebSocket 메서드부터 봅니다."
+      "next": "먼저 사용자가 호출하는 메서드의 동작을 이해하기 위해 문서에서 구현으로 이동합니다.",
+      "transition": {
+        "to": "entry",
+        "basis": "reading"
+      }
     },
     {
       "id": "entry",
@@ -40,7 +44,34 @@
         }
       ],
       "check": "Response가 내보낸 메시지는 어느 메서드가 받나요?",
-      "next": "Response 정의를 열어본 뒤, 메시지 이름을 만드는 코드로 이동합니다."
+      "next": "이 예제의 테스트는 기본 Response를 만듭니다. send_denial_response가 이 객체를 호출하므로, 기본 Response.__call__의 메시지 생성을 봅니다. 하위 클래스가 재정의한 동작은 별도로 확인해야 합니다.",
+      "transition": {
+        "to": "serialize",
+        "basis": "source",
+        "evidence": [
+          {
+            "path": "tests/test_websockets.py",
+            "side": "right",
+            "start": 309,
+            "end": 314,
+            "text": "테스트는 기본 Response를 생성하고 거절 응답 메서드에 넘깁니다."
+          },
+          {
+            "path": "starlette/websockets.py",
+            "side": "right",
+            "start": 207,
+            "end": 209,
+            "text": "확장 지원 확인 후 전달받은 응답 객체를 실행합니다."
+          },
+          {
+            "path": "starlette/responses.py",
+            "side": "right",
+            "start": 150,
+            "end": 159,
+            "text": "기본 Response의 호출 구현이 시작과 본문 메시지를 만듭니다."
+          }
+        ]
+      }
     },
     {
       "id": "serialize",
@@ -58,7 +89,34 @@
         }
       ],
       "check": "시작 메시지에만 접두사를 붙이면 왜 안 될까요?",
-      "next": "메시지를 받은 WebSocket.send가 연결 상태를 어떻게 바꾸는지 봅니다."
+      "next": "응답 실행에 WebSocket의 self.send가 전달됩니다. 기본 Response가 이 콜백으로 시작 메시지를 보내므로, 다음에는 WebSocket.send의 상태 처리를 봅니다.",
+      "transition": {
+        "to": "response-state",
+        "basis": "source",
+        "evidence": [
+          {
+            "path": "starlette/websockets.py",
+            "side": "right",
+            "start": 207,
+            "end": 209,
+            "text": "Response의 세 번째 인자로 현재 WebSocket의 send를 전달합니다."
+          },
+          {
+            "path": "starlette/responses.py",
+            "side": "right",
+            "start": 150,
+            "end": 158,
+            "text": "send 인자가 시작 메시지를 받습니다."
+          },
+          {
+            "path": "starlette/websockets.py",
+            "side": "right",
+            "start": 80,
+            "end": 86,
+            "text": "WebSocket.send가 시작 메시지를 처리하고 응답 중 상태로 전환합니다."
+          }
+        ]
+      }
     },
     {
       "id": "response-state",
@@ -82,7 +140,34 @@
         }
       ],
       "check": "거절 응답을 시작하면 WebSocket이 수락된 상태가 되나요?",
-      "next": "다음으로 본문 전송과 종료 상태를 봅니다."
+      "next": "시작 메시지를 처리하면 RESPONSE 상태가 됩니다. 기본 Response는 이어서 본문 메시지를 보내므로, 다음에는 같은 send 메서드의 RESPONSE 분기를 봅니다.",
+      "transition": {
+        "to": "finish-body",
+        "basis": "source",
+        "evidence": [
+          {
+            "path": "starlette/websockets.py",
+            "side": "right",
+            "start": 80,
+            "end": 86,
+            "text": "시작 메시지가 연결 상태를 RESPONSE로 바꿉니다."
+          },
+          {
+            "path": "starlette/responses.py",
+            "side": "right",
+            "start": 150,
+            "end": 159,
+            "text": "시작 메시지 전송이 반환되면 같은 콜백으로 본문을 보냅니다."
+          },
+          {
+            "path": "starlette/websockets.py",
+            "side": "right",
+            "start": 101,
+            "end": 110,
+            "text": "다음 호출은 RESPONSE 분기에서 본문과 종료 여부를 처리합니다."
+          }
+        ]
+      }
     },
     {
       "id": "finish-body",
@@ -100,7 +185,63 @@
         }
       ],
       "check": "여러 조각으로 나눠 보내는 응답을 중간에 닫지 않게 하는 값은 무엇인가요?",
-      "next": "이 메시지를 받는 테스트 클라이언트로 이동합니다."
+      "next": "이 테스트 경로에서 앱에 전달하는 send는 메시지를 큐에 넣고, 세션의 receive가 같은 큐에서 꺼냅니다. 세션 진입 시 첫 메시지를 거절 응답 처리에 넘기는 지점으로 이어집니다.",
+      "transition": {
+        "to": "test-transport",
+        "basis": "inferred",
+        "evidence": [
+          {
+            "path": "starlette/testclient.py",
+            "side": "right",
+            "start": 145,
+            "end": 147,
+            "text": "테스트 세션은 앱을 실행하며 _asgi_send 콜백을 전달합니다."
+          },
+          {
+            "path": "tests/test_websockets.py",
+            "side": "right",
+            "start": 309,
+            "end": 314,
+            "text": "이 테스트 앱은 받은 send를 WebSocket 생성자에 전달합니다."
+          },
+          {
+            "path": "starlette/websockets.py",
+            "side": "right",
+            "start": 26,
+            "end": 30,
+            "text": "WebSocket은 받은 콜백을 _send에 보관합니다."
+          },
+          {
+            "path": "starlette/websockets.py",
+            "side": "right",
+            "start": 101,
+            "end": 110,
+            "text": "본문 메시지는 _send 콜백으로 전달됩니다."
+          },
+          {
+            "path": "starlette/testclient.py",
+            "side": "right",
+            "start": 166,
+            "end": 167,
+            "text": "앱이 보낸 메시지를 테스트 세션의 큐에 넣습니다."
+          },
+          {
+            "path": "starlette/testclient.py",
+            "side": "right",
+            "start": 211,
+            "end": 215,
+            "text": "receive는 같은 큐에서 메시지나 예외를 꺼냅니다."
+          },
+          {
+            "path": "starlette/testclient.py",
+            "side": "right",
+            "start": 110,
+            "end": 114,
+            "text": "세션에 진입할 때 받은 첫 메시지를 _raise_on_close에 넘깁니다."
+          }
+        ],
+        "uncertainty": "이 인용은 테스트 앱과 콜백·큐의 양 끝을 보여줍니다. TestClient의 앱 래핑과 세션 생성 경로 전체는 인용하지 않아 동일 콜백이 연결된다는 해석이 포함됩니다. 실제 네트워크 서버의 전송 방식은 확인하지 않습니다."
+      }
     },
     {
       "id": "test-transport",
@@ -130,13 +271,17 @@
         }
       ],
       "check": "본문 조각을 어디에서 합치며, 반복문은 무엇을 보고 멈추나요?",
-      "next": "테스트가 이 값들을 실제로 확인하는지 봅니다.",
+      "next": "응답 정보를 예외에 담는 동작을 읽었으니, 호출자가 상태 코드·헤더·본문을 확인하는 테스트로 이동합니다. 실행 순서를 그대로 따라가는 이동은 아닙니다.",
       "reference": {
         "path": "starlette/testclient.py",
         "start": 106,
         "end": 120,
         "label": "참고 · 세션 진입 코드",
         "text": "세션에 들어갈 때 websocket.connect를 보내고 첫 응답을 _raise_on_close에 넘깁니다. 따라서 with 문에 진입하는 과정에서 거절 응답 예외가 발생합니다."
+      },
+      "transition": {
+        "to": "assert-response",
+        "basis": "reading"
       }
     },
     {
@@ -161,7 +306,11 @@
         }
       ],
       "check": "클라이언트가 마지막 조각만 남긴다면 어떤 검사가 실패할까요?",
-      "next": "마지막으로 미지원 서버와 잘못된 메시지 순서를 살펴봅니다."
+      "next": "정상적인 거절 응답의 검사를 읽었으니, 다음에는 확장 미지원과 잘못된 메시지 순서의 실패 사례를 비교합니다.",
+      "transition": {
+        "to": "reject-invalid",
+        "basis": "reading"
+      }
     },
     {
       "id": "reject-invalid",

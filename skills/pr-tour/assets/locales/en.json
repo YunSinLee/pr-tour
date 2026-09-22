@@ -138,5 +138,22 @@
   "기존 코멘트": "Existing comment",
   "가져올 코멘트": "Incoming comment",
   "파일을 읽을 수 없습니다. 다시 선택하거나 JSON을 붙여넣어 주세요.": "Cannot read the file. Choose it again or paste the JSON.",
-  "${added}개 추가 · ${replaced}개 교체 · ${skipped}개 건너뜀": "${added} added · ${replaced} replaced · ${skipped} skipped"
+  "${added}개 추가 · ${replaced}개 교체 · ${skipped}개 건너뜀": "${added} added · ${replaced} replaced · ${skipped} skipped",
+  "코드 근거 첨부": "Source cited",
+  "추론 포함": "Includes inference",
+  "이해를 위한 읽기 순서": "Reading order",
+  "연결 근거 미작성": "Connection evidence not authored",
+  "다음 단계 연결": "Connection to the next step",
+  "확인하지 못한 부분": "What remains unverified",
+  "연결 근거 보기 · ${transition.evidence.length}곳": "View connection evidence · ${transition.evidence.length} excerpts",
+  "원본과 줄 범위를 확인한 인용입니다. 연결의 의미는 작성자의 해석입니다.": "Source text and ranges are checked. The connection is the author’s interpretation.",
+  "가이드 전체 연결 · ${summary.total}개": "Connections in this guide · ${summary.total}",
+  "작성된 연결 설명의 현황이며, 실행 경로의 완전성이나 정확성을 뜻하지 않습니다.": "These counts describe authored connections, not the completeness or correctness of an execution path.",
+  "읽기 순서 영역 너비": "Reading order pane width",
+  "설명 영역 너비": "Guide pane width",
+  "코드 영역 너비": "Code pane width",
+  "${Math.round(range.value)} 픽셀": "${Math.round(range.value)} pixels",
+  "드래그로 너비 조절 · 방향키로 미세 조절 · 더블클릭 또는 Enter로 전체 너비 초기화": "Drag to resize · Arrow keys to adjust · Double-click or Enter to reset all widths",
+  "영역 너비를 기본값으로 되돌렸습니다.": "Pane widths reset to defaults.",
+  "저장한 코멘트를 불러오는 중입니다.": "Loading saved comments."
 }
