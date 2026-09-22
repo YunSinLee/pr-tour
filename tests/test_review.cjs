@@ -84,6 +84,7 @@ for (const language of ['en', 'ko']) {
       await chooseRange(page, 207, 213); await save(page, text);
       const backup = await exported(page);
       await page.locator('.review-card-actions button').last().click();
+      await idle(page);
       await page.reload(); await idle(page); await page.locator('#review-open').click();
       assert.equal(await page.locator('.review-card').count(), 0);
       await previewImport(page, backup, true);
@@ -91,6 +92,7 @@ for (const language of ['en', 'ko']) {
       const sheet = await page.locator('#review-dialog').boundingBox();
       assert.ok(sheet.x >= 0 && sheet.x + sheet.width <= 391 && sheet.y >= 0 && sheet.y + sheet.height <= 845);
       await page.locator('#review-import-apply').click();
+      await idle(page);
       assert.deepEqual(await exported(page), backup, 'round trip preserves all exported fields');
       await page.reload(); await idle(page); await page.locator('#review-open').click();
       assert.equal(await page.locator('.review-body').textContent(), text);
@@ -292,12 +294,14 @@ test('import previews preserve local edits by default, replace explicitly and sk
     assert.equal(await page.locator('#review-import-policy').inputValue(), 'keep');
     assert.equal(await page.locator('#review-import-conflicts img').count(), 0);
     await page.locator('#review-import-apply').click();
+    await idle(page);
     let out = await exported(page);
     assert.deepEqual(out.comments.map(c => c.body), ['Local version','Unchanged','Added from backup']);
     await previewImport(page, incoming);
     assert.equal(await page.locator('#review-import-apply').isEnabled(), false);
     await page.locator('#review-import-policy').selectOption('replace');
     await page.locator('#review-import-apply').click();
+    await idle(page);
     out = await exported(page);
     assert.deepEqual(out, incoming);
     assert.equal(await page.locator('.review-body img').count(), 0);
@@ -361,9 +365,11 @@ test('base-side rename imports map back to the current file and work offline wit
     await chooseRange(page, 68, 68, 'left'); await save(page, 'Old path');
     const backup = await exported(page);
     await page.locator('.review-card-actions button').last().click();
+    await idle(page);
     await page.evaluate(() => { IDBObjectStore.prototype.put = () => { throw new DOMException('Full', 'QuotaExceededError'); }; });
     await previewImport(page, backup);
     await page.locator('#review-import-apply').click();
+    await idle(page);
     assert.match(await page.locator('#review-storage').textContent(), /unavailable/);
     assert.deepEqual(await exported(page), backup);
     await page.locator('.review-location').click();
@@ -376,6 +382,7 @@ test('file URLs can restore a backup; large inputs and cancelled previews leave 
     await chooseRange(page, 207); await save(page, 'Offline');
     const backup = await exported(page);
     await page.locator('.review-card-actions button').last().click();
+    await idle(page);
     await previewImport(page, backup, true);
     await page.locator('#review-import-preview').waitFor({state:'visible'});
     await page.locator('#review-import-cancel').click();
@@ -383,6 +390,7 @@ test('file URLs can restore a backup; large inputs and cancelled previews leave 
     await previewImport(page, backup, true);
     await page.locator('#review-import-preview').waitFor({state:'visible'});
     await page.locator('#review-import-apply').click();
+    await idle(page);
     assert.deepEqual(await exported(page), backup);
     await previewImport(page, ' '.repeat(10 * 1024 * 1024 + 1), true);
     await page.waitForFunction(() => document.getElementById('review-import-error').textContent.includes('10 MiB'));
