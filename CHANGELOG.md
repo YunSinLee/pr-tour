@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.1 — 2026-09-30
+
+- Replace the header's GitHub text link with an offline GitHub icon, retaining an accessible name, tooltip, keyboard focus, and a 44-pixel click/touch target.
+- Copy review feedback as concise Markdown with pinned file/line links, without source code, comment IDs, timestamps, or JSON schema metadata. Use the same text when manual clipboard copying is needed.
+- Preserve the complete JSON download/import format for backups and transfer. Update both demos and test copied ranges, base/head source links, renamed paths, literal feedback, and clipboard fallback.
+
 ## 0.7.0 — 2026-09-22
 
 - Resize the three desktop panes by dragging either divider, with minimum widths, keyboard controls, cancel/reset, and browser-saved preferences. Preserve pane widths when switching guide/code order; keep the existing tabbed mobile layout.

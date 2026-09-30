@@ -4,9 +4,15 @@ Reader comments are created in the generated HTML, independently of the authored
 
 The reader selects an old or new line number, optionally extends the selection to another line on the same side, writes a comment, and saves it. The mobile selection mode enlarges line targets. A comment can refer to expanded unchanged context as well as additions or deletions. The list supports editing, deletion with immediate undo, and navigation back to the selected source. Binary and empty-file changes have no selectable source lines. Definition popups do not accept comments in this first version.
 
-## Export schema v1
+## Copy for AI
 
-**Copy for AI** and **Download JSON** produce the same JSON object. The clipboard fallback displays selectable JSON. All comments are included; the guide's full source and author explanations are not exported.
+**Copy for AI** produces concise Markdown with the PR URL and every comment's body and source location. Each location links to the exact commit, path, and line range; its label distinguishes base/head lines and uses the old path for renamed base files. It omits selected source code, comment IDs, timestamps, and JSON schema metadata. The clipboard fallback displays the same selectable text. Comment bodies retain their original text and line breaks.
+
+Use these source links to check the snapshot before evaluating or applying the feedback. Copied Markdown is for reading and AI conversations; use **Download JSON** for backups that can be imported again.
+
+## JSON export schema v1
+
+**Download JSON** produces the complete JSON object below for **Import JSON**. All comments and their selected source lines are included; the guide's full source and author explanations are not exported.
 
 | Field | Meaning |
 | --- | --- |

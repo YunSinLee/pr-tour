@@ -19,6 +19,8 @@
 .layout-control{display:flex;align-items:center;gap:8px;white-space:nowrap;font-size:11px;color:var(--muted)}
 .layout-control select{width:148px;border:1px solid var(--line);border-radius:5px;background:var(--bg);padding:5px 7px;font-size:11px;color:var(--ink)}
 .top-label strong{white-space:nowrap}
+.top-actions .github-link{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;flex-shrink:0;border-radius:8px;color:var(--ink)}
+.github-link:hover{background:var(--blue-soft);color:var(--blue)}.github-link svg{display:block;fill:currentColor}
 @media(min-width:1600px){.workspace{--sidebar-width:240px;--guide-width:370px}.bottom-bar{grid-template-columns:240px minmax(0,1fr)}.guide{padding:30px}.diff-table{font-size:13px;line-height:26px}.diff-table td{height:26px}}
 @media(max-width:1100px){.workspace{--sidebar-width:188px;--guide-width:292px}.bottom-bar{grid-template-columns:188px minmax(0,1fr)}.guide{padding:21px 18px}.guide h2{font-size:21px}.topbar{padding:0 19px}.top-actions{gap:10px}.commit{display:none}.next-title{display:none}.sidebar-intro{padding-left:17px}.nav-step{gap:6px;padding:8px 6px}.nav-title{font-size:11px}.nav-file{font-size:9px}}
 .code-actions{display:flex;gap:6px;flex-shrink:0}.code-tools{flex-wrap:wrap}.code-hint{font-size:10px;color:var(--muted);margin-top:7px}.symbol-link{font:inherit;line-height:inherit;color:#245fb0;text-decoration:underline dotted #7699c8;text-underline-offset:3px;border:0;padding:0;margin:0;background:none;vertical-align:baseline;border-radius:2px}.symbol-link:hover{background:#d8e7ff;color:#16478e;text-decoration-style:solid}.gap td{background:#f3f6fb;border-block:1px solid #e0e7f1}.gap-controls{display:flex;gap:7px;align-items:center;flex-wrap:wrap;max-width:calc(100vw - 24px);position:sticky;left:0;padding:8px 12px;white-space:normal;font:11px/1.7 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}.gap-label{color:#75849b;margin-right:3px}.gap-button{font:inherit;white-space:nowrap;background:white;border:1px solid #d6e0ed;border-radius:5px;padding:3px 7px;color:#45668f}.gap-button:hover{background:var(--blue-soft)}.gap-button:disabled{opacity:.45}.definition-dialog{width:min(900px,calc(100vw - 36px));max-height:85dvh;border:1px solid #cfd9e7;border-radius:12px;padding:0;color:var(--ink);box-shadow:0 24px 90px #182b5140;background:white;overflow:hidden}.definition-dialog[open]{display:flex;flex-direction:column}.definition-dialog::backdrop{background:#12233c66}.definition-header{padding:18px 22px;border-bottom:1px solid var(--line);flex-shrink:0}.definition-top{display:flex;justify-content:space-between;align-items:center;gap:12px}.definition-top h2{font:650 16px/1.5 var(--mono);overflow-wrap:anywhere;min-width:0}.definition-actions{display:flex;gap:7px;flex-shrink:0}.definition-description{font-size:13px;color:#52657e;margin-top:10px;line-height:1.8}.definition-meta{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap;font:10px/1.7 var(--mono);color:#75849b;margin-top:9px;overflow-wrap:anywhere}.definition-meta a{color:var(--blue)}.definition-code{overflow:auto;min-height:0;padding:12px 0 22px;background:#fafbfd;overscroll-behavior:contain}.definition-code table{border-collapse:collapse;width:max-content;min-width:100%;font:12px/24px var(--mono)}.definition-code td{padding:0;vertical-align:top}.definition-code .line{color:#97a3b5;text-align:right;padding:0 16px;user-select:none;font-size:10px}.definition-code .code-cell{white-space:pre;padding-right:22px}.definition-footer{padding:9px 22px;border-top:1px solid var(--line);font-size:10px;color:var(--muted);flex-shrink:0}.definition-actions [hidden]{display:none}
@@ -103,7 +105,30 @@ __LAYOUT_CSS__
 <body>
 <header class="topbar">
   <div class="identity"><div class="logo" aria-hidden="true">±</div><div><div class="top-label"><strong>PR #__PR_NUMBER__</strong><span>FILES CHANGED · 읽기 가이드</span></div><h1>__PR_TITLE__</h1></div></div>
-  <div class="top-actions"><button type="button" class="review-open" id="review-open" aria-haspopup="dialog">코멘트 (0)</button><div class="layout-control"><label for="layout-select">화면 배치</label><select id="layout-select"><option value="code-last">설명 → 코드</option><option value="code-first">코드 → 설명</option></select></div><span class="commit" title="이 HTML에 담긴 코드의 커밋">__SHORT_HEAD__ · 고정된 diff</span><a class="external" href="__PR_URL__/files" target="_blank" rel="noopener noreferrer">GitHub Files changed ↗</a></div>
+  <div class="top-actions"><button type="button" class="review-open" id="review-open" aria-haspopup="dialog">코멘트 (0)</button><div class="layout-control"><label for="layout-select">화면 배치</label><select id="layout-select"><option value="code-last">설명 → 코드</option><option value="code-first">코드 → 설명</option></select></div><span class="commit" title="이 HTML에 담긴 코드의 커밋">__SHORT_HEAD__ · 고정된 diff</span><!-- GitHub mark from Primer Octicons: https://github.com/primer/octicons
+MIT License
+
+Copyright (c) 2026 GitHub Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+<a class="external github-link" href="__PR_URL__/files" target="_blank" rel="noopener noreferrer" aria-label="GitHub에서 변경 파일 보기 (새 탭)" title="GitHub에서 변경 파일 보기 (새 탭)"><svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/></svg></a></div>
   <div class="mobile-step"><label for="step-select">읽는 구간</label><select id="step-select"></select></div>
   <div class="mobile-panes" role="tablist" aria-label="읽기 화면"><button type="button" class="pane-tab" id="guide-tab" role="tab" aria-controls="guide" aria-selected="true">설명</button><button type="button" class="pane-tab" id="code-tab" role="tab" aria-controls="code-pane" aria-selected="false" tabindex="-1">코드</button></div>
 </header>
@@ -130,7 +155,7 @@ __LAYOUT_CSS__
 <div class="review-content">
   <section id="review-list"><button type="button" id="review-add-from-list">현재 코드에 코멘트</button><div id="review-items"></div></section>
   <section id="review-editor" hidden><p id="review-location" class="review-editor-location"></p><pre id="review-code" class="review-code"></pre><label for="review-text">코멘트</label><textarea id="review-text" maxlength="10000" placeholder="궁금한 점이나 수정 의견을 남겨주세요."></textarea><div class="review-editor-actions"><button type="button" id="review-cancel-edit">취소</button><button type="button" class="primary" id="review-save">저장</button></div></section>
-  <section id="review-export" hidden><label for="review-export-text">자동 복사가 제한되어 있습니다. 아래 JSON을 직접 복사하세요.</label><textarea id="review-export-text" readonly spellcheck="false"></textarea><button type="button" id="review-export-back">목록으로</button></section>
+  <section id="review-export" hidden><label for="review-export-text">자동 복사가 제한되어 있습니다. 아래 코멘트를 직접 복사하세요.</label><textarea id="review-export-text" readonly spellcheck="false"></textarea><button type="button" id="review-export-back">목록으로</button></section>
   <section id="review-import" hidden>
     <p class="review-import-hint">이 가이드에서 내보낸 JSON을 선택하거나 붙여넣으세요. 파일은 서버로 전송되지 않습니다.</p>
     <button type="button" id="review-import-file-button">JSON 파일 선택</button><input type="file" id="review-import-file" accept=".json,application/json" hidden><span id="review-import-filename"></span>
@@ -245,7 +270,7 @@ __LAYOUT_CSS__
     renderDefinition(definitionHistory[definitionHistory.length - 1]);
   });
   dismissOnBackdropClick(el('definition-dialog'));
-  review = TourReview.init({data, currentFile: () => steps[current < 0 ? 0 : current].file,
+  review = TourReview.init({data, sourceUrl, currentFile: () => steps[current < 0 ? 0 : current].file,
     showCode: () => { if (mobileQuery.matches) setMobilePane('code'); }, reveal: revealComment});
   dismissOnBackdropClick(el('review-dialog'));
   window.addEventListener('hashchange', readHash);

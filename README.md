@@ -124,10 +124,10 @@ Step links use `#step-id` and open that step's first note; individual notes do n
 1. Open **Comments → Comment on current code**, or **Add comment** in the code tools. You can also start by clicking a line number.
 2. Select one line, then another line on the same side to select a range. Base and head lines are separate. On mobile, the line-number targets grow while selecting.
 3. Choose **Write comment**, enter your feedback, and **Save**. Edit or delete it in the list, with an undo action immediately after deletion. Click a location to return to its lines, including collapsed context.
-4. **Copy for AI** copies all comments as JSON; **Download JSON** saves a file. When clipboard access is blocked, a selectable text box provides manual copying.
+4. **Copy for AI** copies concise Markdown with your comments, the PR URL, and links to the exact source lines. It omits source code, comment IDs, and timestamps. When clipboard access is blocked, a selectable text box provides the same text for manual copying.
 5. Open the same PR snapshot in another environment and use **Import JSON** to choose a file or paste JSON. Review the new, duplicate, and conflicting counts, then select **Import comments**. If the same comment ID has different edits, the default keeps the existing version. Compare both versions before choosing to replace it with the incoming one.
 
-The export includes the PR URL, pinned commits, source paths, base/head side, line ranges, selected source text, and comments. Paste it into your AI conversation and ask which feedback to evaluate or apply. PR Tour does not send it to an AI service or post GitHub comments. See the [review export format](skills/pr-tour/references/review-comments.md).
+Paste the copied comments into your AI conversation and ask which feedback to evaluate or apply. Source links retain the pinned commit, file path, base/head side in the label, and line range. **Download JSON** keeps a complete backup, including selected source text and metadata, for **Import JSON**. PR Tour does not send either format to an AI service or post GitHub comments. See the [review export formats](skills/pr-tour/references/review-comments.md).
 
 <img src="docs/comments.en.jpg" width="320" alt="Mobile comment editor with selected source lines and an example question">
 
