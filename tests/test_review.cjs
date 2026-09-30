@@ -78,6 +78,36 @@ async function previewImport(page, value, file = false) {
 }
 
 for (const language of ['en', 'ko']) {
+  test(`${language}: copy contains feedback and pinned line links; JSON remains a complete backup`, async () => {
+    await withGuide(language, {init: () => {
+      Object.defineProperty(navigator, 'clipboard', {value:{writeText: async text => { window.copiedReview = text; }}});
+    }, fixture: data => { data.files['starlette/websockets.py'].oldPath = 'starlette/old [socket](v1).py'; }}, async page => {
+      const body = '예외 처리도 확인해 주세요.\n\n- Keep `details` and <literal> text. 😀';
+      await chooseRange(page, 207, 213); await save(page, body);
+      await page.locator('#review-close').click();
+      await chooseRange(page, 68, 68, 'left'); await save(page, 'Check the original behavior.');
+      const backup = await exported(page);
+      await page.locator('#review-copy').click();
+      const copied = await page.evaluate(() => window.copiedReview);
+      const title = language === 'ko' ? '리뷰 코멘트' : 'Review comments';
+      const head = language === 'ko' ? '변경 후' : 'Head';
+      const base = language === 'ko' ? '변경 전' : 'Base';
+      assert.equal(copied, `# PR #2041 · ${title}\n\n${backup.prUrl}\n\n` +
+        `## 1. [starlette/websockets.py · ${head} L207–213](<${backup.repositoryUrl}/blob/${backup.head}/starlette/websockets.py#L207-L213>)\n\n${body}\n\n` +
+        `## 2. [starlette/old \\[socket\\](v1).py · ${base} L68](<${backup.repositoryUrl}/blob/${backup.mergeBase}/starlette/old%20%5Bsocket%5D(v1).py#L68>)\n\nCheck the original behavior.`);
+      assert.equal(backup.comments[0].code.split('\n').length, 7);
+      assert.ok(backup.comments[0].id && backup.comments[0].createdAt && backup.comments[0].updatedAt);
+      assert.equal(backup.comments[1].path, 'starlette/old [socket](v1).py');
+      assert.deepEqual(await exported(page), backup, 'copy leaves the importable JSON unchanged');
+      assert.match(await page.locator('#review-feedback').textContent(), language === 'ko' ? /코멘트를 복사/ : /Comments copied/);
+      await page.evaluate(() => { navigator.clipboard.writeText = async () => { throw new Error('denied'); }; });
+      await page.locator('#review-copy').click();
+      assert.equal(await page.locator('#review-export-text').inputValue(), copied);
+      assert.equal(await page.locator('#review-title').textContent(), language === 'ko' ? '코멘트 복사' : 'Copy comments');
+      assert.match(await page.locator('label[for="review-export-text"]').textContent(), language === 'ko' ? /아래 코멘트/ : /comments below/);
+    });
+  });
+
   test(`${language}: downloaded comments import from a file, persist and return to code on mobile`, async () => {
     await withGuide(language, {mobile:true}, async page => {
       const text = language === 'ko' ? '다른 브라우저에서도 이어서 읽어요.' : 'Portable comment';
@@ -164,7 +194,10 @@ for (const language of ['en', 'ko']) {
       await page.locator('#review-open').click();
       assert.equal(await page.locator('.review-body').textContent(), 'Draft remains');
       await page.locator('#review-copy').click();
-      assert.equal(JSON.parse(await page.locator('#review-export-text').inputValue()).comments[0].body, 'Draft remains');
+      const copied = await page.locator('#review-export-text').inputValue();
+      assert.ok(copied.endsWith('\n\nDraft remains'));
+      assert.match(copied, /starlette\/websockets.py.*L207–213/);
+      assert.doesNotMatch(copied, /schemaVersion|createdAt|async def/);
       for (const viewport of [{width:390,height:844},{width:320,height:568},{width:844,height:390}]) {
         await page.setViewportSize(viewport);
         const box = await page.locator('#review-dialog').boundingBox();
@@ -256,7 +289,7 @@ test('snapshot isolation, clipboard success and storage failure keep comments ex
   }}, async (page, changeData) => {
     await chooseRange(page, 207); await save(page, 'First snapshot');
     await page.locator('#review-copy').click();
-    assert.equal(await page.evaluate(() => JSON.parse(window.copiedReview).comments[0].body), 'First snapshot');
+    assert.ok((await page.evaluate(() => window.copiedReview)).endsWith('\n\nFirst snapshot'));
     changeData(data => { data.head = 'f'.repeat(40); });
     await page.reload(); await idle(page); await page.locator('#review-open').click();
     assert.equal(await page.locator('.review-card').count(), 0);

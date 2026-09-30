@@ -1,7 +1,7 @@
 /* Reader comments are local to a repository snapshot, never part of the source manifest. */
 const TourReview = (() => {
   'use strict';
-  function init({data, currentFile, showCode, reveal}) {
+  function init({data, currentFile, showCode, reveal, sourceUrl}) {
     const el = id => document.getElementById(id);
     const dialog = el('review-dialog');
     const key = 'pr-tour.review.v1:' + JSON.stringify([data.url, data.mergeBase, data.head]);
@@ -161,6 +161,14 @@ const TourReview = (() => {
           commit: c.side === 'left' ? data.mergeBase : data.head, startLine: c.start, endLine: c.end,
           code: codeOf(c), body: c.body, createdAt: c.createdAt, updatedAt: c.updatedAt}))}, null, 2);
     }
+    function copyText() {
+      const items = comments.map((c, index) => {
+        const title = label(c).replace(/[\\`*_\[\]<>]/g, '\\$&');
+        const url = sourceUrl(pathOf(c), c.start, c.end, c.side);
+        return `## ${index + 1}. [${title}](<${url}>)\n\n${c.body}`;
+      });
+      return `# PR #${data.number} · 리뷰 코멘트\n\n${data.url}\n\n${items.join('\n\n')}`;
+    }
     function parseImport(text) {
       if (new Blob([text]).size > importLimit) throw new Error('JSON 파일은 10 MiB 이하여야 합니다.');
       let saved;
@@ -308,7 +316,7 @@ const TourReview = (() => {
       for (const id of ['list', 'editor', 'export', 'import']) el(`review-${id}`).hidden = id !== name;
       el('review-exports').hidden = name !== 'list';
       el('review-feedback').textContent = '';
-      el('review-title').textContent = name === 'editor' ? '코멘트 작성' : name === 'export' ? 'JSON 복사' : name === 'import' ? 'JSON 불러오기' : '리뷰 코멘트';
+      el('review-title').textContent = name === 'editor' ? '코멘트 작성' : name === 'export' ? '코멘트 복사' : name === 'import' ? 'JSON 불러오기' : '리뷰 코멘트';
       storageLabel();
       if (!dialog.open) dialog.showModal();
     }
@@ -380,10 +388,10 @@ const TourReview = (() => {
       if (!draft && dialog.open && viewId === importRead) list();
     });
     el('review-copy').addEventListener('click', async () => {
-      const text = payload();
+      const text = copyText();
       try {
         await navigator.clipboard.writeText(text);
-        el('review-feedback').textContent = 'JSON을 복사했습니다. AI 대화에 붙여넣으세요.';
+        el('review-feedback').textContent = '코멘트를 복사했습니다. AI 대화에 붙여넣으세요.';
       } catch {
         view('export');
         el('review-export-text').value = text;
