@@ -260,6 +260,7 @@ const TourReview = (() => {
         const inRange = c => c.file === currentFile() && Number(c.side === 'left' ? row.dataset.oldLine : row.dataset.line) >= c.start &&
           Number(c.side === 'left' ? row.dataset.oldLine : row.dataset.line) <= c.end;
         row.classList.toggle('review-selected', Boolean(selection && inRange(selection)));
+        row.dataset.reviewSide = selection?.side || '';
         for (const b of row.querySelectorAll('.review-line')) {
           const hasComment = comments.some(c => c.side === b.dataset.side && inRange(c));
           b.classList.toggle('has-comment', hasComment);
@@ -274,12 +275,13 @@ const TourReview = (() => {
       el('review-selection').hidden = true;
       decorate();
     }
-    function scrollToRow(row) {
+    function scrollToRow(row, side) {
       if (!row) return;
       const scroll = el('diff-scroll');
       el('diff-body').closest('table').style.setProperty('--focus-tail', `${Math.max(0, scroll.clientHeight - 56)}px`);
-      scroll.scrollLeft = 0;
-      scroll.scrollTop += row.getBoundingClientRect().top - scroll.getBoundingClientRect().top - 28;
+      const table = el('diff-body').closest('table');
+      scroll.scrollLeft = table.dataset.view === 'split' && (side || table.dataset.focusSide) === 'right' ? row.querySelector('.line-new')?.offsetLeft || 0 : 0;
+      scroll.scrollTop += row.getBoundingClientRect().top - scroll.getBoundingClientRect().top - (table.dataset.view === 'split' ? 40 : 28);
     }
     function begin(focusCurrent = true) {
       dialog.close(); showCode(); selecting = true; selection = null;
@@ -301,7 +303,7 @@ const TourReview = (() => {
       selectionLabel(); decorate();
       if (first) requestAnimationFrame(() => {
         const attr = side === 'left' ? 'data-old-line' : 'data-line';
-        scrollToRow(el('diff-body').querySelector(`tr[${attr}="${line}"]`));
+        scrollToRow(el('diff-body').querySelector(`tr[${attr}="${line}"]`), side);
       });
     }
     function lineButton(number, side) {
@@ -451,7 +453,7 @@ const TourReview = (() => {
     // Preserve an unfinished editor when Escape or Close dismisses the sheet.
     dialog.addEventListener('keydown', event => event.stopPropagation());
     document.addEventListener('keydown', event => {
-      if (event.key === 'Escape' && selecting && !document.querySelector('dialog[open]')) {
+      if (event.key === 'Escape' && selecting && !document.querySelector('dialog[open]') && el('code-menu-toggle').getAttribute('aria-expanded') !== 'true') {
         event.preventDefault(); event.stopImmediatePropagation(); cancelSelection();
       }
     }, true);

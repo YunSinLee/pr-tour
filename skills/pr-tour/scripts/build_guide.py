@@ -441,6 +441,7 @@ def render(template, data):
     template = template.replace('__REVIEW_CSS__', (assets / 'review.css').read_text(encoding='utf-8'))
     template = template.replace('__TRANSITION_CSS__', (assets / 'transitions.css').read_text(encoding='utf-8'))
     template = template.replace('__LAYOUT_CSS__', (assets / 'layout.css').read_text(encoding='utf-8'))
+    template = template.replace('__SPLIT_CSS__', (assets / 'split.css').read_text(encoding='utf-8'))
     template = localize(template, data.get('language', 'ko'))
     template = template.replace('<html lang="ko">', f'<html lang="{data.get("language", "ko")}">')
     values = {'PR_NUMBER': data['number'], 'PR_TITLE': data['title'], 'PR_URL': data['url'],
