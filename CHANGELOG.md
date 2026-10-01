@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0 — 2026-10-01
+
+- Explain PRs for readers without repository or domain context by default. Introduce the problem and unfamiliar terms, compare previous and new behavior, and write natural Korean when Korean is requested. Preserve explicit audience/language choices and technical conditions.
+- Add Unified / Split diff views with merge-base code on the left and head code on the right, independent line numbers and syntax colors, wrapped long lines, and a browser-saved view preference.
+- Preserve expanded context, reading position, side-specific focus, review selections, saved comments, and pinned source links when switching. Keep verified head definition links on the head side; do not assign them to base context.
+- Offer Split in the mobile tools menu, with horizontal scrolling or wrapping to the screen width. Close an open tools menu before cancelling a review selection with Escape.
+- Update the Korean introduction, both offline demos, and regression coverage for source fidelity, unequal additions/deletions, comments, storage failures, and mobile use.
+
 ## 0.7.1 — 2026-09-30
 
 - Replace the header's GitHub text link with an offline GitHub icon, retaining an accessible name, tooltip, keyboard focus, and a 44-pixel click/touch target.

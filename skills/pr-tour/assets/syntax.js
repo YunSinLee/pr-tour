@@ -70,6 +70,7 @@ const TourSyntax = (() => {
     // Parse each complete snapshot independently, including hidden context. A deletion
     // must not change how the following added lines are interpreted (or vice versa).
     rows(items.filter(row => row.old != null), file.oldPath, highlighter);
+    items.forEach(row => { row.oldSyntax = row.syntax; });
     rows(items.filter(row => row.new != null), file.path, highlighter);
   }
 

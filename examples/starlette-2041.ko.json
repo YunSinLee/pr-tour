@@ -4,21 +4,21 @@
   "base": "043c800210e4d694263d3fece6ff1f1d2e65a80a",
   "date": "2026-09-12",
   "title": "Starlette · WebSocket 연결 거절 응답",
-  "overview": "WebSocket 연결 수락 전에 원하는 HTTP 오류를 보냅니다. 응답 전송, 상태 변화, 테스트를 따라갑니다.",
+  "overview": "WebSocket은 연결을 유지하며 메시지를 주고받는 방식입니다. 이 PR은 연결을 거절할 때 앱이 원하는 오류 응답을 보낼 수 있게 합니다. 응답을 보내는 코드부터 결과를 확인하는 테스트까지 따라갑니다.",
   "steps": [
     {
       "id": "contract",
-      "group": "동작 계약",
+      "group": "바뀌는 동작",
       "file": "docs/websockets.md",
       "title": "HTTP 응답으로 연결 거절",
       "heading": "연결을 열기 전에 실패 이유를 보냅니다.",
-      "why": "WebSocket 연결을 수락하기 전에 닫으면 보통 HTTP 403이 됩니다. 이 PR은 앱이 404 같은 상태 코드와 본문을 정해 보낼 수 있게 합니다. 그 응답이 테스트 클라이언트까지 전달되는 흐름을 따라갑니다.",
+      "why": "기존에는 WebSocket 연결을 수락하기 전에 닫으면 서버가 보통 HTTP 403 응답을 보냈습니다. 이 PR에서는 앱이 404 같은 상태 코드뿐 아니라 오류 이유를 담을 본문도 정할 수 있습니다. 연결을 요청한 쪽이 그 응답을 받기까지 어떤 코드를 거치는지 살펴봅니다.",
       "notes": [
         {
           "start": 113,
           "end": 125,
           "title": "사용자가 기대할 동작",
-          "text": "send_denial_response(response)는 서버의 확장 기능이 필요합니다. 지원하지 않으면 RuntimeError가 발생한다고 문서에 명시합니다."
+          "text": "앱은 send_denial_response(response)를 호출해 원하는 거절 응답을 보냅니다. 이 기능은 서버도 지원해야 합니다. 서버가 지원하지 않으면 RuntimeError가 발생한다고 문서에 명시돼 있습니다."
         }
       ],
       "check": "거절 응답을 보내기 전에 연결을 수락해야 할까요?",
@@ -32,9 +32,9 @@
       "id": "entry",
       "group": "응답 전송",
       "file": "starlette/websockets.py",
-      "title": "새 메서드 진입",
+      "title": "거절 응답 보내기",
       "heading": "기존 Response 객체를 그대로 사용합니다.",
-      "why": "앱이 만든 Response를 send_denial_response에 전달합니다. 서버가 확장 기능을 지원하면 현재 WebSocket의 receive와 send 메서드를 응답 실행에 넘깁니다.",
+      "why": "Response는 상태 코드, 헤더, 본문처럼 보낼 응답 내용을 담는 객체입니다. 앱은 이 객체를 새 메서드인 send_denial_response에 넘깁니다. 서버가 기능을 지원하면 이 메서드가 Response를 실행하면서 메시지를 주고받을 함수인 receive와 send도 함께 넘깁니다.",
       "notes": [
         {
           "start": 207,

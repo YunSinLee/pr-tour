@@ -48,6 +48,8 @@ Every changed file must occur in at least one step. There is no fixed number of 
 
 ## Line notes and source references
 
+Write authored text for a reader who has no repository or domain context by default. Use `overview` to introduce the problem, `why` to explain the previous and new behavior, and `notes[].text` to connect specific code to that behavior. Briefly explain unfamiliar terms on first use. Korean prose should read naturally, with clear subjects and concrete verbs; retain identifiers and technical conditions. Follow an explicit audience or language request. These are writing defaults, not extra manifest fields or mandatory headings.
+
 Notes require `title,start,end,text`. `side` defaults to `right`, or `left` for a deleted file. Set `side: "left"` to explain removed lines within a modified file. Note ranges must be present in the initially visible diff, including context rows. A note cannot cross a hidden gap.
 
 The order of `steps` and each step's `notes` is the mobile code-reading order; notes are not sorted by line number. Write them in the order a reader should follow. Mobile **Next code / Prev code** visits each note, then continues across steps. A step with no notes remains one file-change stop. Step hashes (`#step-id`) open the first note of that step; individual notes do not have separate hashes. No extra manifest fields are needed for mobile layout, wrapping, or expanded reading.

@@ -45,6 +45,8 @@ test('old and new snapshots are parsed separately, including collapsed gaps', ()
   assert.ok(close.syntax.some(token => token.classes === 'hljs-comment'));
   assert.ok(context.syntax.some(token => token.classes === 'hljs-keyword'));
   assert.ok(context.syntax.some(token => token.classes === 'hljs-string'));
+  assert.deepEqual(context.oldSyntax, [{start:0,end:context.text.length,classes:'hljs-comment'}],
+    'split base context retains its own multiline scope instead of using head tokens');
 });
 
 test('renamed files use the old extension for deletions and new extension for additions', () => {

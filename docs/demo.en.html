@@ -183,6 +183,36 @@ body[data-review-selecting=true] .code-pane{grid-template-rows:auto auto auto mi
 }
 body[data-pane-dragging=true],body[data-pane-dragging=true] *{cursor:col-resize!important;user-select:none!important}
 
+.diff-view-control{display:flex;align-items:center;gap:6px;white-space:nowrap;color:var(--muted);font-size:11px}
+.code-actions{max-width:100%;min-width:0}.code-menu{flex-wrap:wrap;min-width:0}
+.diff-view-control select{font:inherit;color:var(--ink);background:white;border:1px solid #d9e2ef;border-radius:5px;padding:3px 6px}
+.diff-table[data-view=split]{width:100%;min-width:680px;table-layout:fixed}
+.diff-table[data-view=split] col.line-column{width:56px}
+.diff-table[data-view=split] .code-cell{min-width:0;white-space:pre-wrap;overflow-wrap:anywhere;padding-right:12px}
+.diff-table[data-view=split] .line{width:56px;max-width:56px;padding:0 6px;position:relative}
+.split-heading th{position:sticky;top:0;z-index:1;background:#f6f8fb;border-bottom:1px solid var(--line);text-align:left;padding:4px 12px;color:var(--muted);font:600 11px/24px -apple-system,BlinkMacSystemFont,sans-serif}
+.split-heading th+th,.split-row .line-new{border-left:1px solid var(--line)}
+.split-row .add{background:var(--add)}.split-row .del{background:var(--del)}
+.split-row .line.add{background:#ccefd4;color:#479360}.split-row .line.del{background:#f9d8d4;color:#b46760}
+.split-row .empty{background:repeating-linear-gradient(135deg,#f5f7fa,#f5f7fa 4px,#eef1f5 4px,#eef1f5 5px)}
+.split-sign{position:absolute;left:5px;font-size:11px;pointer-events:none}
+/* Only the referenced snapshot is highlighted, even when rows are paired. */
+.diff-table[data-view=split] tr .code-cell{box-shadow:none;background-image:none}
+.diff-table[data-view=split][data-focus-side=left] tr.focus .code-cell[data-side=left],
+.diff-table[data-view=split][data-focus-side=right] tr.focus .code-cell[data-side=right]{box-shadow:inset 3px 0 var(--blue);background-image:linear-gradient(90deg,#5785f222,transparent 230px)}
+.diff-table[data-view=split] tr.review-selected[data-review-side=left] .code-cell[data-side=left],
+.diff-table[data-view=split] tr.review-selected[data-review-side=right] .code-cell[data-side=right]{box-shadow:inset 3px 0 #b27309;background-image:linear-gradient(90deg,#eeb54d44,#eeb54d22)}
+@media(max-width:850px),(max-width:950px) and (max-height:500px){
+  .code-menu{flex-wrap:nowrap}
+  .diff-view-control{justify-content:space-between;padding:0 8px;font-size:12px;min-height:44px}
+  .diff-view-control select{min-height:44px;font-size:12px}
+  body[data-wrap=true] .diff-table[data-view=split]{min-width:100%}
+  .diff-table[data-view=split] col.line-column,body[data-wrap=true] .diff-table[data-view=split] col.line-column{width:44px}
+  .diff-table[data-view=split] .line{width:44px;min-width:44px;max-width:44px;padding:0 3px}
+  .split-sign{left:2px;font-size:9px}
+  body[data-review-selecting=true] .diff-table[data-view=split] .split-sign{display:none}
+}
+
 </style>
 </head>
 <body>
@@ -225,7 +255,7 @@ SOFTWARE.
   <div class="pane-resizer" id="pane-resizer" role="separator" tabindex="0" aria-orientation="vertical" aria-label="Guide pane width" aria-controls="guide"></div>
   <section class="code-pane" id="code-pane" aria-label="Changed code and collapsed context">
     <div class="filebar"><div class="filebar-top"><span class="file-symbol" aria-hidden="true">⌘</span><h2 class="file-path" id="file-path"></h2></div><div class="filebar-bottom"><div class="file-stats"><span id="file-added" class="plus"></span><span id="file-removed" class="minus"></span><span id="context-state">Changes</span><span class="legend-focus"><i aria-hidden="true"></i>Current lines</span></div><a class="external" id="source-link" target="_blank" rel="noopener noreferrer">Source at this commit ↗</a></div><p class="code-hint">Click an underlined name to preview its definition. Expand hidden context below.</p></div>
-    <div class="code-tools"><div class="focus-label"><strong id="focus-lines"></strong><span id="focus-title"></span></div><div class="code-actions"><button type="button" class="focus-back reader-control" id="show-guide">Guide</button><button type="button" class="focus-back reader-control" id="expand-code" aria-pressed="false">Expand</button><button type="button" class="focus-back reader-control" id="code-menu-toggle" aria-label="Code tools" aria-expanded="false" aria-controls="code-menu">⋯</button><div class="code-menu" id="code-menu" role="group" aria-label="Code tools"><button type="button" class="focus-back" id="review-add">Add comment</button><button type="button" class="focus-back reader-control" id="review-menu-open" aria-haspopup="dialog">Comments (0)</button><button type="button" class="focus-back" id="show-context" aria-pressed="false">Show full file</button><button type="button" class="focus-back wrap-control" id="wrap-code" aria-pressed="false">Wrap lines</button><button type="button" class="focus-back" id="focus-back">Jump to focus ↓</button><a class="external reader-control" id="mobile-source-link" target="_blank" rel="noopener noreferrer">Source at this commit ↗</a><p class="menu-hint reader-control">Click an underlined name to preview its definition. Expand hidden context below.</p></div></div></div>
+    <div class="code-tools"><div class="focus-label"><strong id="focus-lines"></strong><span id="focus-title"></span></div><div class="code-actions"><button type="button" class="focus-back reader-control" id="show-guide">Guide</button><button type="button" class="focus-back reader-control" id="expand-code" aria-pressed="false">Expand</button><button type="button" class="focus-back reader-control" id="code-menu-toggle" aria-label="Code tools" aria-expanded="false" aria-controls="code-menu">⋯</button><div class="code-menu" id="code-menu" role="group" aria-label="Code tools"><label class="diff-view-control" for="diff-view">Diff view<select id="diff-view"><option value="unified">Unified</option><option value="split">Split</option></select></label><button type="button" class="focus-back" id="review-add">Add comment</button><button type="button" class="focus-back reader-control" id="review-menu-open" aria-haspopup="dialog">Comments (0)</button><button type="button" class="focus-back" id="show-context" aria-pressed="false">Show full file</button><button type="button" class="focus-back wrap-control" id="wrap-code" aria-pressed="false">Wrap lines</button><button type="button" class="focus-back" id="focus-back">Jump to focus ↓</button><a class="external reader-control" id="mobile-source-link" target="_blank" rel="noopener noreferrer">Source at this commit ↗</a><p class="menu-hint reader-control">Click an underlined name to preview its definition. Expand hidden context below.</p></div></div></div>
     <div id="review-selection" class="review-selection" hidden><span id="review-selection-label" role="status"></span><button type="button" id="review-write" disabled>Write comment</button><button type="button" id="review-cancel-selection">Cancel selection</button></div>
     <div class="diff-scroll" id="diff-scroll" tabindex="0" aria-label="Code diff, scroll vertically and horizontally"><table class="diff-table"><caption class="sr-only" id="diff-caption"></caption><colgroup><col class="line-column"><col class="line-column"><col class="sign-column"><col></colgroup><thead class="sr-only"><tr><th>Old line</th><th>New line</th><th>Change</th><th>Code</th></tr></thead><tbody id="diff-body"></tbody></table></div>
   </section>
@@ -1622,6 +1652,7 @@ const TourSyntax = (() => {
     // Parse each complete snapshot independently, including hidden context. A deletion
     // must not change how the following added lines are interpreted (or vice versa).
     rows(items.filter(row => row.old != null), file.oldPath, highlighter);
+    items.forEach(row => { row.oldSyntax = row.syntax; });
     rows(items.filter(row => row.new != null), file.path, highlighter);
   }
 
@@ -1907,6 +1938,7 @@ const TourReview = (() => {
         const inRange = c => c.file === currentFile() && Number(c.side === 'left' ? row.dataset.oldLine : row.dataset.line) >= c.start &&
           Number(c.side === 'left' ? row.dataset.oldLine : row.dataset.line) <= c.end;
         row.classList.toggle('review-selected', Boolean(selection && inRange(selection)));
+        row.dataset.reviewSide = selection?.side || '';
         for (const b of row.querySelectorAll('.review-line')) {
           const hasComment = comments.some(c => c.side === b.dataset.side && inRange(c));
           b.classList.toggle('has-comment', hasComment);
@@ -1921,12 +1953,13 @@ const TourReview = (() => {
       el('review-selection').hidden = true;
       decorate();
     }
-    function scrollToRow(row) {
+    function scrollToRow(row, side) {
       if (!row) return;
       const scroll = el('diff-scroll');
       el('diff-body').closest('table').style.setProperty('--focus-tail', `${Math.max(0, scroll.clientHeight - 56)}px`);
-      scroll.scrollLeft = 0;
-      scroll.scrollTop += row.getBoundingClientRect().top - scroll.getBoundingClientRect().top - 28;
+      const table = el('diff-body').closest('table');
+      scroll.scrollLeft = table.dataset.view === 'split' && (side || table.dataset.focusSide) === 'right' ? row.querySelector('.line-new')?.offsetLeft || 0 : 0;
+      scroll.scrollTop += row.getBoundingClientRect().top - scroll.getBoundingClientRect().top - (table.dataset.view === 'split' ? 40 : 28);
     }
     function begin(focusCurrent = true) {
       dialog.close(); showCode(); selecting = true; selection = null;
@@ -1948,7 +1981,7 @@ const TourReview = (() => {
       selectionLabel(); decorate();
       if (first) requestAnimationFrame(() => {
         const attr = side === 'left' ? 'data-old-line' : 'data-line';
-        scrollToRow(el('diff-body').querySelector(`tr[${attr}="${line}"]`));
+        scrollToRow(el('diff-body').querySelector(`tr[${attr}="${line}"]`), side);
       });
     }
     function lineButton(number, side) {
@@ -2098,7 +2131,7 @@ const TourReview = (() => {
     // Preserve an unfinished editor when Escape or Close dismisses the sheet.
     dialog.addEventListener('keydown', event => event.stopPropagation());
     document.addEventListener('keydown', event => {
-      if (event.key === 'Escape' && selecting && !document.querySelector('dialog[open]')) {
+      if (event.key === 'Escape' && selecting && !document.querySelector('dialog[open]') && el('code-menu-toggle').getAttribute('aria-expanded') !== 'true') {
         event.preventDefault(); event.stopImmediatePropagation(); cancelSelection();
       }
     }, true);
@@ -2353,6 +2386,9 @@ const TourLayout = (() => {
   let review = null;
   let activeFile = '';
   let activeNote = 0;
+  let focusedRange = null;
+  let diffView = 'unified';
+  try { if (localStorage.getItem('pr-tour.diff-view') === 'split') diffView = 'split'; } catch {}
   const contextStates = new Map();
   const highlightedFiles = new Set();
   const highlightedDefinitions = new Set();
@@ -2405,6 +2441,25 @@ const TourLayout = (() => {
   el('step-select').addEventListener('change', event => chooseStep(Number(event.target.value)));
   el('focus-back').addEventListener('click', scrollToFocus);
   el('show-context').addEventListener('click', toggleContext);
+  el('diff-view').value = diffView;
+  el('diff-view').addEventListener('change', event => {
+    const scroll = el('diff-scroll');
+    const {top, bottom} = scroll.getBoundingClientRect();
+    const visible = [...el('diff-body').querySelectorAll('tr[data-line], tr[data-old-line]')]
+      .filter(row => row.getBoundingClientRect().bottom > top + 36 && row.getBoundingClientRect().top < bottom);
+    const anchor = visible.find(row => row.getBoundingClientRect().top >= top + 36) || visible[0];
+    const offset = anchor ? anchor.getBoundingClientRect().top - top : 0;
+    const side = anchor?.dataset.reviewSide || el('diff-body').closest('table').dataset.focusSide;
+    const attribute = ((side === 'left' && anchor?.dataset.oldLine) || !anchor?.dataset.line) ? 'data-old-line' : 'data-line';
+    const line = anchor?.getAttribute(attribute);
+    diffView = event.target.value === 'split' ? 'split' : 'unified';
+    try { localStorage.setItem('pr-tour.diff-view', diffView); } catch {}
+    renderRows();
+    scroll.scrollLeft = 0;
+    const nextAnchor = line && el('diff-body').querySelector(`tr[${attribute}="${line}"]`);
+    if (nextAnchor) scroll.scrollTop += nextAnchor.getBoundingClientRect().top - top - offset;
+    el('status-live').textContent = diffView === 'split' ? 'Showing base and head code side by side.' : 'Showing base and head code in a unified diff.';
+  });
   el('expand-code').addEventListener('click', () => setCodeExpanded(!codeExpanded));
   el('show-guide').addEventListener('click', () => {
     setMobilePane('guide');
@@ -2673,7 +2728,26 @@ const TourLayout = (() => {
 
   function renderRows() {
     const file = data.files[activeFile];
+    const table = el('diff-body').closest('table');
+    table.dataset.view = diffView;
+    const split = diffView === 'split';
+    table.querySelector('colgroup').replaceChildren(...(split ? ['line-column', '', 'line-column', ''] : ['line-column', 'line-column', 'sign-column', '']).map(name => make('col', name)));
+    const head = table.querySelector('thead');
+    head.className = split ? 'split-heading' : 'sr-only';
+    const headings = make('tr');
+    (split ? ['Base', 'Head'] : ['Old line', 'New line', 'Change', 'Code']).forEach(label => {
+      const th = make('th', '', label);
+      th.colSpan = split ? 2 : 1;
+      th.scope = split ? 'colgroup' : 'col';
+      headings.append(th);
+    });
+    head.replaceChildren(headings);
     const fragment = document.createDocumentFragment();
+    let removed = [], added = [];
+    const flushChanges = () => {
+      for (let i = 0; i < Math.max(removed.length, added.length); i++) fragment.append(splitRow(removed[i], added[i]));
+      removed = []; added = [];
+    };
     if (file.notice || file.changeNote) {
       const tr = make('tr', 'hunk');
       const cell = make('td', 'code-cell', file.notice || file.changeNote);
@@ -2683,6 +2757,11 @@ const TourLayout = (() => {
       fragment.append(tr);
     }
     file.rows.forEach(row => {
+      if (split && (row.kind === 'del' || row.kind === 'add')) {
+        (row.kind === 'del' ? removed : added).push(row);
+        return;
+      }
+      flushChanges();
       if (row.kind === 'gap') {
         const state = gapState(row);
         row.lines.slice(0, state.top).forEach(line => fragment.append(codeRow(line)));
@@ -2698,6 +2777,7 @@ const TourLayout = (() => {
         fragment.append(codeRow(row));
       }
     });
+    flushChanges();
     el('diff-body').replaceChildren(fragment);
     const gaps = file.rows.filter(row => row.kind === 'gap');
     const hidden = gaps.reduce((sum, gap) => sum + gap.lines.length - gapState(gap).top - gapState(gap).bottom, 0);
@@ -2710,6 +2790,7 @@ const TourLayout = (() => {
   }
 
   function codeRow(row) {
+    if (diffView === 'split') return splitRow(row.old == null ? null : row, row.new == null ? null : row);
     const tr = make('tr', row.kind);
     if (row.new !== null) tr.dataset.line = String(row.new);
     if (row.old !== null) tr.dataset.oldLine = String(row.old);
@@ -2719,6 +2800,30 @@ const TourLayout = (() => {
     tr.append(oldCell, newCell,
               make('td', 'sign', row.kind === 'add' ? '+' : row.kind === 'del' ? '−' : ' '),
               codeCell(row));
+    return tr;
+  }
+
+  function splitRow(left, right) {
+    const tr = make('tr', 'split-row');
+    if (left) tr.dataset.oldLine = String(left.old);
+    if (right) tr.dataset.line = String(right.new);
+    for (const [row, side, column] of [[left, 'left', 'old'], [right, 'right', 'new']]) {
+      const kind = row?.kind || 'empty';
+      const line = make('td', `line line-${column} ${kind}`);
+      line.dataset.side = side;
+      if (row) {
+        const sign = make('span', 'split-sign', kind === 'del' ? '−' : kind === 'add' ? '+' : '');
+        sign.setAttribute('aria-hidden', 'true');
+        line.append(sign, review.lineButton(row[column], side));
+      }
+      // Definitions belong to a verified snapshot. Context links are authored
+      // for head, so do not reuse them for the merge-base copy of that line.
+      const source = row && side === 'left' ? {...row, syntax:row.oldSyntax, links:row.kind === 'del' ? row.links : []} : row;
+      const cell = source ? codeCell(source) : make('td', 'code-cell');
+      cell.classList.add(kind);
+      cell.dataset.side = side;
+      tr.append(line, cell);
+    }
     return tr;
   }
 
@@ -2895,6 +3000,7 @@ const TourLayout = (() => {
     paneScroll.left = 0;
     const step = steps[current];
     const note = step.notes[index];
+    focusedRange = note || null;
     updateNavigation();
     el('status-live').textContent = `${current + 1}/${steps.length}, ${step.title}, ${step.file}${note ? `, ${lineLabel(note)}, ${note.title}` : ''}`;
     el('focus-title').title = note ? note.title : step.title;
@@ -2920,7 +3026,7 @@ const TourLayout = (() => {
   }
 
   function markFocus() {
-    const note = steps[current].notes[activeNote] || steps[current].notes[0];
+    const note = focusedRange;
     el('diff-body').closest('table').dataset.focusSide = note?.side || 'right';
     el('diff-body').querySelectorAll('tr').forEach(row => {
       const line = Number(note?.side === 'left' ? row.dataset.oldLine : row.dataset.line);
@@ -2940,7 +3046,13 @@ const TourLayout = (() => {
     // Let even the last source line reach the top of the mobile reading area.
     if (mobileQuery.matches) el('diff-body').closest('table').style.setProperty('--focus-tail', `${Math.max(0, scroll.clientHeight - 56)}px`);
     const top = row.getBoundingClientRect().top - scroll.getBoundingClientRect().top + scroll.scrollTop;
-    scroll.scrollTop = Math.max(0, top - (mobileQuery.matches ? 28 : 72));
+    scroll.scrollTop = Math.max(0, top - (mobileQuery.matches ? (diffView === 'split' ? 40 : 28) : 72));
+    revealSide(row, focusedRange?.side);
+  }
+
+  function revealSide(row, side) {
+    const scroll = el('diff-scroll');
+    scroll.scrollLeft = diffView === 'split' && side !== 'left' ? row.querySelector('.line-new')?.offsetLeft || 0 : 0;
   }
 
   function lineLabel(note) {
@@ -2964,10 +3076,12 @@ const TourLayout = (() => {
       const scroll = el('diff-scroll');
       const attr = comment.side === 'left' ? 'oldLine' : 'line';
       const rows = [...el('diff-body').querySelectorAll('tr')];
+      focusedRange = comment;
       el('diff-body').closest('table').dataset.focusSide = comment.side;
       rows.forEach(row => {
         const selected = Number(row.dataset[attr]) >= comment.start && Number(row.dataset[attr]) <= comment.end;
         row.classList.toggle('review-selected', selected);
+        row.dataset.reviewSide = comment.side;
         row.classList.toggle('focus', selected);
       });
       el('focus-lines').textContent = lineLabel(comment);
@@ -2978,8 +3092,8 @@ const TourLayout = (() => {
       const row = rows.find(row => Number(row.dataset[attr]) === comment.start);
       if (row) {
         el('diff-body').closest('table').style.setProperty('--focus-tail', `${Math.max(0, scroll.clientHeight - 56)}px`);
-        scroll.scrollLeft = 0;
-        scroll.scrollTop += row.getBoundingClientRect().top - scroll.getBoundingClientRect().top - 28;
+        revealSide(row, comment.side);
+        scroll.scrollTop += row.getBoundingClientRect().top - scroll.getBoundingClientRect().top - (diffView === 'split' ? 40 : 28);
         row.querySelector(comment.side === 'left' ? '.line-old button' : '.line-new button')?.focus({preventScroll: true});
       }
     });
