@@ -33,14 +33,14 @@
       "group": "응답 전송",
       "file": "starlette/websockets.py",
       "title": "거절 응답 보내기",
-      "heading": "기존 Response 객체를 그대로 사용합니다.",
-      "why": "Response는 상태 코드, 헤더, 본문처럼 보낼 응답 내용을 담는 객체입니다. 앱은 이 객체를 새 메서드인 send_denial_response에 넘깁니다. 서버가 기능을 지원하면 이 메서드가 Response를 실행하면서 메시지를 주고받을 함수인 receive와 send도 함께 넘깁니다.",
+      "heading": "새 메서드로 연결 수락 전에 HTTP 응답을 보낼 수 있습니다.",
+      "why": "앱이 상태 코드와 본문을 정한 Response를 새 send_denial_response 메서드에 넘기면 거절 응답을 보낼 수 있습니다. 응답을 직접 조립하는 대신 기존 Response의 전송 로직을 사용합니다. 서버가 필요한 확장 기능을 지원하지 않으면 RuntimeError가 발생합니다.",
       "notes": [
         {
           "start": 207,
           "end": 213,
-          "title": "지원 확인 후 응답 실행",
-          "text": "scope에는 연결 정보와 지원하는 확장 기능이 들어 있습니다. 여기서 self.send를 넘기므로 응답 메시지도 WebSocket의 상태 검사를 거칩니다."
+          "title": "서버 지원 확인과 응답 전송",
+          "text": "추가된 메서드는 서버의 websocket.http.response 지원 여부를 먼저 확인합니다. 지원하면 Response를 실행하되 self.send를 전달하므로, 거절 응답도 다음에 살펴볼 WebSocket 메시지 순서 검사를 거칩니다."
         }
       ],
       "check": "Response가 내보낸 메시지는 어느 메서드가 받나요?",
@@ -78,14 +78,14 @@
       "group": "응답 전송",
       "file": "starlette/responses.py",
       "title": "ASGI 메시지 만들기",
-      "heading": "응답 내용은 유지하고 메시지 이름을 바꿉니다.",
-      "why": "ASGI는 앱과 서버 사이에서 딕셔너리 형태의 메시지를 주고받습니다. Response는 상태 코드·헤더를 먼저 보내고 본문을 보냅니다. WebSocket 요청이면 두 메시지 이름 앞에 websocket.을 붙입니다.",
+      "heading": "HTTP 전용이던 응답 메시지 이름을 WebSocket 요청에도 맞춥니다.",
+      "why": "기존 Response는 항상 http.response.start와 http.response.body 메시지를 보냈습니다. 이제 WebSocket 요청에서는 두 이름 앞에 websocket.을 붙여, 같은 Response로 연결 거절용 HTTP 응답을 보낼 수 있습니다. 상태 코드·헤더·본문을 보내는 방식은 유지됩니다.",
       "notes": [
         {
           "start": 150,
           "end": 159,
-          "title": "시작과 본문 모두에 접두사",
-          "text": "WebSocket 요청에서는 websocket.http.response.start와 websocket.http.response.body가 됩니다. 일반 HTTP 요청에서는 기존 메시지 이름을 유지합니다."
+          "title": "두 메시지에 같은 접두사 적용",
+          "text": "시작 메시지와 본문 메시지 모두에 접두사를 붙여 WebSocket 거절 응답 형식에 맞춥니다. 일반 HTTP 요청에서는 접두사가 빈 문자열이므로 기존 메시지 이름을 그대로 사용합니다."
         }
       ],
       "check": "시작 메시지에만 접두사를 붙이면 왜 안 될까요?",
@@ -129,14 +129,14 @@
         {
           "start": 13,
           "end": 16,
-          "title": "새 상태",
-          "text": "RESPONSE는 연결 거절용 HTTP 본문을 보내는 단계입니다. 이미 수락한 WebSocket의 메시지 전송과 구분합니다."
+          "title": "거절 응답 전송을 나타내는 상태 추가",
+          "text": "새 RESPONSE 상태는 연결을 수락하지 않은 채 HTTP 응답 본문을 보내는 동안 사용합니다. 수락된 연결을 뜻하는 기존 CONNECTED와 구분해야 거절 응답에 맞는 메시지 순서를 검사할 수 있습니다."
         },
         {
           "start": 68,
           "end": 86,
-          "title": "메시지 검사와 상태 변경",
-          "text": "CONNECTING 상태에서 응답 시작 메시지를 허용합니다. application_state를 바꾼 뒤 서버 쪽 콜백으로 메시지를 전달합니다."
+          "title": "연결 대기 중 거절 응답 시작도 허용",
+          "text": "기존에는 CONNECTING에서 수락·종료 메시지만 허용했습니다. 여기에 응답 시작 메시지를 추가하고 RESPONSE로 이동시켜, 새 Response 전송이 기존 메시지 검사에서 거부되지 않게 합니다."
         }
       ],
       "check": "거절 응답을 시작하면 WebSocket이 수락된 상태가 되나요?",
@@ -175,13 +175,13 @@
       "file": "starlette/websockets.py",
       "title": "본문 전송 마무리",
       "heading": "마지막 본문 메시지에서 종료 상태로 바꿉니다.",
-      "why": "RESPONSE 상태에서는 websocket.http.response.body만 허용합니다. more_body=True이면 본문이 더 올 수 있고, 마지막 조각에서는 DISCONNECTED로 바뀝니다. more_body가 없어도 마지막 조각으로 처리합니다.",
+      "why": "새 RESPONSE 분기는 거절 응답을 시작한 뒤 본문 메시지만 허용합니다. 본문이 여러 조각이면 more_body=True인 동안 이 상태를 유지하고, 마지막 조각에서 DISCONNECTED로 바꿉니다. 응답을 시작하자마자 닫지 않으면서 전송이 끝난 뒤에는 추가 메시지를 막습니다.",
       "notes": [
         {
           "start": 101,
           "end": 112,
-          "title": "본문만 허용하는 경로",
-          "text": "기본값 False가 중요합니다. Response.__call__은 more_body 없이 본문 한 개를 보내므로 여기서 종료됩니다. 시작 메시지를 다시 보내면 RuntimeError가 발생합니다."
+          "title": "본문이 끝날 때 연결 종료",
+          "text": "more_body가 없으면 False로 처리합니다. 기존 Response.__call__이 보내는 단일 본문에도 이 값이 없으므로 응답을 마칠 수 있습니다. 본문 대신 시작 메시지를 다시 보내면 새 분기에서 RuntimeError로 거부합니다."
         }
       ],
       "check": "여러 조각으로 나눠 보내는 응답을 중간에 닫지 않게 하는 값은 무엇인가요?",
@@ -248,26 +248,26 @@
       "group": "응답 관찰",
       "file": "starlette/testclient.py",
       "title": "거절 응답을 테스트에 전달",
-      "heading": "테스트는 응답 정보를 담은 예외를 받습니다.",
-      "why": "테스트 전송 계층은 확장 기능을 지원한다고 알립니다. WebSocket 세션은 본문 조각을 모아 WebSocketDenialResponse를 발생시킵니다. 이 예외는 HTTP 응답 정보를 담으면서 WebSocketDisconnect로도 잡을 수 있습니다.",
+      "heading": "테스트에서도 거절 응답의 상태 코드·헤더·본문을 확인할 수 있습니다.",
+      "why": "기존 테스트 세션은 websocket.close를 받으면 연결 종료 예외를 발생시켰습니다. 이제 거절 응답 시작 메시지도 처리해 본문을 모은 뒤 새 WebSocketDenialResponse 예외로 전달합니다. 호출자는 연결 실패를 잡으면서 HTTP 응답 내용까지 검사할 수 있습니다.",
       "notes": [
         {
           "start": 302,
           "end": 305,
-          "title": "확장 기능 지원 선언",
-          "text": "프로세스 안에서 사용하는 테스트 scope에 websocket.http.response를 넣습니다. 특정 운영 서버의 지원 여부까지 증명하는 것은 아닙니다."
+          "title": "테스트 연결에 확장 기능 지원 추가",
+          "text": "테스트 scope에 websocket.http.response를 추가해 새 메서드를 사용할 수 있게 합니다. 이 설정은 프로세스 내부 테스트 전송 계층에만 해당하며, 운영 서버의 지원 여부는 별도로 확인해야 합니다."
         },
         {
           "start": 174,
           "end": 188,
-          "title": "응답 조각 모으기",
-          "text": "more_body가 false이거나 없을 때까지 읽습니다. 상태 코드·헤더·합친 본문을 예외 객체에 보존합니다."
+          "title": "새 응답 처리 분기에서 본문 합치기",
+          "text": "추가된 분기는 more_body가 false이거나 없을 때까지 본문 조각을 읽고 합칩니다. 그 결과 테스트가 마지막 조각뿐 아니라 전체 본문과 상태 코드·헤더를 예외에서 확인할 수 있습니다."
         },
         {
           "start": 81,
           "end": 88,
-          "title": "예외의 역할",
-          "text": "두 부모 클래스를 통해 같은 객체에서 HTTP 응답을 살펴보고 WebSocket 연결 종료로 처리할 수 있습니다."
+          "title": "응답 정보를 가진 종료 예외 추가",
+          "text": "새 예외는 httpx.Response와 WebSocketDisconnect를 함께 상속합니다. HTTP 응답 정보를 조회할 수 있고, 기존처럼 WebSocketDisconnect로 연결 종료를 잡는 코드에도 걸립니다."
         }
       ],
       "check": "본문 조각을 어디에서 합치며, 반복문은 무엇을 보고 멈추나요?",
@@ -289,8 +289,8 @@
       "group": "검증",
       "file": "tests/test_websockets.py",
       "title": "상태 코드·헤더·본문 확인",
-      "heading": "호출자가 받는 값을 검사합니다.",
-      "why": "작은 ASGI 앱을 TestClient로 실행합니다. 실제 Starlette의 응답·WebSocket 코드를 사용하며, 네트워크 서버 대신 프로세스 내부 전송 계층으로 연결합니다.",
+      "heading": "새 테스트는 단일 본문과 나눠 보낸 본문이 모두 전달되는지 확인합니다.",
+      "why": "추가된 테스트는 거절 응답의 상태 코드·헤더·본문이 호출자에게 보존되는지 검사합니다. 특히 여러 조각으로 보낸 본문이 합쳐지는지 확인합니다. 작은 ASGI 앱과 실제 Starlette 응답·WebSocket 코드를 쓰지만, 전송은 실제 네트워크 서버 대신 프로세스 내부 TestClient를 사용합니다.",
       "notes": [
         {
           "start": 308,

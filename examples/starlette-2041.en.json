@@ -33,14 +33,14 @@
       "group": "Send",
       "file": "starlette/websockets.py",
       "title": "Enter the new method",
-      "heading": "Use the existing Response object.",
-      "why": "The application passes a Response to send_denial_response. When the scope advertises the extension, the method runs that response with this WebSocket’s receive and send callbacks.",
+      "heading": "A new method sends an HTTP response before accepting the connection.",
+      "why": "An app can pass a Response with its chosen status and body to the new send_denial_response method. It reuses the existing Response transmission logic. If the server lacks the required extension, the method raises RuntimeError.",
       "notes": [
         {
           "start": 207,
           "end": 213,
-          "title": "Check support, then delegate",
-          "text": "The scope describes the connection and supported extensions. The passed self.send is important: response messages will go through WebSocket state validation."
+          "title": "Check support and send the response",
+          "text": "The new method checks for websocket.http.response support before running the Response. Passing self.send routes the denial messages through WebSocket message-order validation, which the following steps examine."
         }
       ],
       "check": "Which method receives the messages emitted by Response?",
@@ -78,14 +78,14 @@
       "group": "Send",
       "file": "starlette/responses.py",
       "title": "Create ASGI messages",
-      "heading": "The payload stays the same; the message names gain a prefix.",
-      "why": "ASGI passes dictionaries between an application and its server. Response emits a start message with status and headers, followed by a body message. For WebSocket scope, both names now start with websocket.",
+      "heading": "Previously HTTP-only event names now adapt to WebSocket requests.",
+      "why": "Response previously always sent http.response.start and http.response.body. For WebSocket requests, it now prefixes both names with websocket., allowing the same Response to send an HTTP denial response. Status, headers, and body are sent as before.",
       "notes": [
         {
           "start": 150,
           "end": 159,
-          "title": "Prefix both messages",
-          "text": "A WebSocket scope produces websocket.http.response.start and websocket.http.response.body. Ordinary HTTP scope keeps http.response.start and http.response.body."
+          "title": "Apply the prefix to both messages",
+          "text": "Both start and body messages gain the prefix required for a WebSocket denial response. For ordinary HTTP requests the prefix is empty, preserving the existing event names."
         }
       ],
       "check": "Why would prefixing only the start message be insufficient?",
@@ -129,14 +129,14 @@
         {
           "start": 13,
           "end": 16,
-          "title": "New state",
-          "text": "RESPONSE separates an HTTP denial body from messages on an accepted WebSocket."
+          "title": "Add a denial-response state",
+          "text": "The new RESPONSE state represents sending an HTTP body without accepting the connection. Keeping it separate from CONNECTED lets the sender enforce the message order required for a denial response."
         },
         {
           "start": 68,
           "end": 86,
-          "title": "Validate and transition",
-          "text": "A response-start message is accepted only in CONNECTING. It sets application_state before forwarding the message to the server callback."
+          "title": "Allow a denial response to start while connecting",
+          "text": "CONNECTING previously allowed only accept and close messages. Adding response-start and moving to RESPONSE prevents the existing validation from rejecting the new Response transmission."
         }
       ],
       "check": "Does starting a denial response mark the WebSocket as accepted?",
@@ -175,13 +175,13 @@
       "file": "starlette/websockets.py",
       "title": "Finish the response body",
       "heading": "The last body message closes the application state.",
-      "why": "In RESPONSE, only websocket.http.response.body is valid. Chunks with more_body=True keep the state open; a final chunk, including one with no more_body key, moves it to DISCONNECTED.",
+      "why": "The new RESPONSE branch allows only body messages after a denial response starts. It stays in RESPONSE while more_body=True and moves to DISCONNECTED on the final chunk. This lets the body finish before rejecting any further messages.",
       "notes": [
         {
           "start": 101,
           "end": 112,
-          "title": "Body-only path",
-          "text": "The default of False matters. Response.__call__ sends one body without more_body, so the ordinary denial response finishes here. Another start message raises RuntimeError."
+          "title": "Close when the body finishes",
+          "text": "An absent more_body defaults to False. The existing Response.__call__ sends a single body without that key, so its response can finish here. A second start message instead of a body is rejected with RuntimeError by the new branch."
         }
       ],
       "check": "What keeps a multi-chunk response open between chunks?",
@@ -248,26 +248,26 @@
       "group": "Observe",
       "file": "starlette/testclient.py",
       "title": "Expose the rejected response",
-      "heading": "Tests inspect a response-shaped exception.",
-      "why": "The test transport advertises extension support. Its WebSocket session collects response-body chunks and raises WebSocketDenialResponse, which carries HTTP response data and is also a WebSocketDisconnect.",
+      "heading": "Tests can now inspect the denial status, headers, and body.",
+      "why": "The existing session raised a disconnect exception on websocket.close. It now also handles denial-response start messages, collects the body, and raises the new WebSocketDenialResponse exception. Callers can catch the failed connection and inspect its HTTP response.",
       "notes": [
         {
           "start": 302,
           "end": 305,
-          "title": "Advertise support",
-          "text": "The in-process test scope includes websocket.http.response. This exercises the application without proving that any particular deployed server supports the extension."
+          "title": "Add extension support to test connections",
+          "text": "Adding websocket.http.response to the test scope enables the new method in the in-process transport. It does not establish support in any deployed server."
         },
         {
           "start": 174,
           "end": 188,
-          "title": "Collect the response",
-          "text": "The loop reads until more_body is false or absent, then preserves the status, headers and joined body in the exception."
+          "title": "Collect the body in the new response branch",
+          "text": "The added branch reads chunks until more_body is false or absent and joins them. Tests can inspect the complete body, rather than just the last chunk, along with the status and headers."
         },
         {
           "start": 81,
           "end": 88,
-          "title": "Exception contract",
-          "text": "The two base classes make HTTP response inspection and WebSocket-disconnect handling possible on the same object."
+          "title": "Add a response-shaped disconnect exception",
+          "text": "The new exception inherits from both httpx.Response and WebSocketDisconnect. It exposes HTTP response data and can also be caught by code that already handles WebSocketDisconnect."
         }
       ],
       "check": "Where are multiple body chunks joined, and what stops that loop?",
@@ -289,8 +289,8 @@
       "group": "Verify",
       "file": "tests/test_websockets.py",
       "title": "Assert status, headers and body",
-      "heading": "The tests check the values the caller receives.",
-      "why": "These tests run small ASGI applications through TestClient. They use the real Starlette response and WebSocket code with in-process transport, rather than a live network server.",
+      "heading": "New tests check delivery of both single and chunked bodies.",
+      "why": "The added assertions check that callers receive the denial status, headers, and body, including a body assembled from multiple chunks. Small ASGI apps use real Starlette response and WebSocket code with the in-process TestClient transport, rather than a live network server.",
       "notes": [
         {
           "start": 308,

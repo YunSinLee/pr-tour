@@ -18,10 +18,10 @@ Write UTF-8 JSON. The builder extracts all code from Git; author explanations, r
       "group": "실행",
       "title": "응답 목록 제한",
       "file": "app/search.py",
-      "heading": "전체 건수는 두고 목록만 줄입니다.",
-      "why": "클라이언트에 넘기는 목록의 길이를 제한합니다. 전체 검색 건수는 유지합니다.",
+      "heading": "검색 결과를 전부 반환하던 방식에서 요청한 개수만 반환하도록 바뀝니다.",
+      "why": "기존에는 검색된 목록을 모두 반환했습니다. 이제 limit만큼 잘라 반환하므로 클라이언트가 받을 항목 수를 정할 수 있습니다. 전체 검색 건수는 그대로 제공됩니다.",
       "notes": [
-        {"title": "목록 자르기", "start": 27, "end": 29, "text": "limit은 반환 목록 수에만 적용됩니다."}
+        {"title": "반환 항목 수 제한", "start": 27, "end": 29, "text": "목록을 반환하기 전에 limit만큼 자릅니다. 따라서 전체 건수보다 반환 항목 수가 작을 수 있습니다."}
       ],
       "check": "전체 건수와 반환 목록 수가 구분되나요?",
       "next": "실패했을 때의 응답 처리로 이어집니다."
@@ -45,6 +45,18 @@ Write UTF-8 JSON. The builder extracts all code from Git; author explanations, r
 The example paths and ranges illustrate the schema; replace them with observed code. Both hashes must already exist locally. The builder computes `merge-base(base, head)` and shows its diff against head. `language` is `ko` (default) or `en` for controls. Author explanations in the requested language separately. `date` is optional; default is today's date. Use the original guide's snapshot/date when preserving an existing guide.
 
 Every changed file must occur in at least one step. There is no fixed number of steps or groups. For a renamed file, use its new path as the step's `file`; the builder records its old path. `notes` can be empty for binary, metadata-only, pure rename, or empty-file changes.
+
+## Writing explanations
+
+Use the diff and both snapshots to decide what the reader needs from each step. Prefer the behavioral difference and its consequence over a description that could also have been written before the PR. Do not invent a previous limitation or author motivation; qualify uncertain intent and describe only the difference the code supports.
+
+- `heading` states the main change or, for a context step, its connection to the change.
+- `why` gives the relevant previous behavior, new behavior, and practical effect when that comparison helps. New APIs may be clearer through a concrete use case; mechanical changes need only a brief explanation. Introduce unfamiliar concepts where needed, without turning every step into a code tutorial.
+- `notes[].text` explains how the selected lines produce that effect or preserve an important behavior. Name the subject explicitly and avoid repeating `why` or translating each statement into prose. For example, prefer “Previously both messages used HTTP event names. The new prefix lets the same Response send a WebSocket denial response; HTTP event names stay unchanged” over “Set prefix based on scope, then concatenate it with type.”
+- For tests, lead with the behavior or regression the assertions protect, then explain the setup needed to interpret them. Distinguish newly added assertions from existing tests. Report execution results only if observed.
+- For unchanged context, say what already exists and why it matters to the change. Use definition descriptions for a function/type's general role; readers should not need that popup to discover the PR's main change.
+
+Read each step's heading, why, and notes together before delivery: can the reader tell what changed, why the cited lines matter, and which behavior remains the same? Remove repeated summaries and vague emphasis such as “this value is important” in favor of the actual effect. These are authoring choices, not additional manifest fields or a fixed prose template.
 
 ## Line notes and source references
 
