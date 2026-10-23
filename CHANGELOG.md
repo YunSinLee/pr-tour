@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.1 — 2026-10-23
+
+- Explain behavioral changes and their effects before code mechanics, adapting the emphasis for new APIs, tests, and unchanged context. Update the English and Korean examples to follow this guidance.
+- Scroll to code over 180 ms when clicking an explanation. Replace an active animation on another click, stop on manual input, and respect reduced-motion preferences. Keep initial positioning immediate.
+
 ## 0.8.0 — 2026-10-01
 
 - Explain PRs for readers without repository or domain context by default. Introduce the problem and unfamiliar terms, compare previous and new behavior, and write natural Korean when Korean is requested. Preserve explicit audience/language choices and technical conditions.

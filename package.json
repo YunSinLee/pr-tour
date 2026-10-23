@@ -2,6 +2,7 @@
   "name": "pr-tour-tests",
   "private": true,
   "scripts": {
+    "test:scroll": "node --test tests/test_scroll.cjs",
     "test:dialog": "node --test tests/test_dialog.cjs",
     "test:mobile": "node --test tests/test_mobile.cjs",
     "test:browser": "node --test tests/test_dialog.cjs tests/test_mobile.cjs tests/test_review.cjs tests/test_transitions.cjs tests/test_layout.cjs tests/test_split.cjs",

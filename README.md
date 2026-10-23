@@ -90,6 +90,8 @@ For example: `Save the guide and manifest in ~/Documents/pr-tours/starlette-2041
 - Explains the change for readers without repository or domain context: introduce the problem and unfamiliar terms, then describe the previous and new behavior in plain language. Korean explanations use natural, direct Korean. An explicit language or audience request takes precedence.
 - Arranges changes by code flow. A file can appear in more than one step.
 - Switches **Diff view** between **Unified** and **Split**. Split shows merge-base code on the left and head code on the right, wrapping long lines. Expanded context and comment selections survive switching; the browser remembers the view when storage is available. On mobile, use **⋯**, scroll horizontally, or turn on **Wrap lines** to fit both sides to the screen.
+- Leads with behavioral changes and their effects, adding code mechanics where needed. Adapts explanations to new features, tests, and context.
+- Scrolls quickly and smoothly to code when selecting an explanation. Manual input stops the motion, and reduced-motion preferences are respected.
 - Explains why the next step follows, with expandable source citations, explicit uncertainty for inferred connections, and a separate label for reading-order moves.
 - Shows the explanation before the code by default. Use **Layout** to switch the two panes; the browser remembers your choice when local storage is available. On phones and narrow screens, **Guide / Code** tabs show one pane at a time and keep your reading position. Selecting a note opens its focused code; changing steps keeps the current tab.
 - Drag either vertical divider to resize adjacent panes on desktop. Widths follow the guide/code panes when reordered and are remembered when browser storage is available. Minimum widths keep each pane usable; smaller windows temporarily clamp widths. Double-click a divider to reset all widths, or focus it and use arrow keys (Shift for larger steps), Home/End, and Enter to reset. Escape cancels an active drag.
@@ -170,10 +172,11 @@ Run the builder regression suite without third-party Python packages:
 python3 -m unittest discover -s tests -v
 ```
 
-Run syntax-rendering regression tests with Node.js 20+ (no package installation):
+Run syntax-rendering and scroll-animation logic tests with Node.js 20+ (no package installation):
 
 ```sh
 node --test tests/test_syntax.cjs
+npm run test:scroll
 ```
 
 Run browser regression tests for pane resizing, mobile reading, definition previews, comments, and connection evidence in both demos (Node.js 20+):

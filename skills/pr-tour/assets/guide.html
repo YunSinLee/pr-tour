@@ -201,6 +201,7 @@ SOFTWARE.
   let pendingFocus = false;
   const paneScroll = {guide: 0, code: 0, left: 0};
   let paneSizing = null;
+  let focusScrollFrame = 0;
 
   let savedLayout = 'code-last';
   try { savedLayout = localStorage.getItem(layoutStorageKey) || savedLayout; } catch {}
@@ -208,6 +209,9 @@ SOFTWARE.
   paneSizing = TourLayout.init({workspace:el('workspace'), mobileQuery});
 
   buildNavigation();
+  ['wheel', 'touchstart', 'pointerdown', 'keydown'].forEach(type => {
+    el('diff-scroll').addEventListener(type, cancelFocusScroll, {passive: true});
+  });
   ['guide', 'code'].forEach(pane => {
     el(`${pane}-tab`).addEventListener('click', () => setMobilePane(pane));
     el(`${pane}-tab`).addEventListener('keydown', event => {
@@ -243,6 +247,7 @@ SOFTWARE.
   el('show-context').addEventListener('click', toggleContext);
   el('diff-view').value = diffView;
   el('diff-view').addEventListener('change', event => {
+    cancelFocusScroll();
     const scroll = el('diff-scroll');
     const {top, bottom} = scroll.getBoundingClientRect();
     const visible = [...el('diff-body').querySelectorAll('tr[data-line], tr[data-old-line]')]
@@ -308,6 +313,7 @@ SOFTWARE.
   }
 
   function setMobilePane(pane) {
+    cancelFocusScroll();
     savePaneScroll();
     mobilePane = pane;
     applyMobileView();
@@ -485,6 +491,7 @@ SOFTWARE.
   }
 
   function renderStep(index, noteIndex = 0) {
+    cancelFocusScroll();
     review?.cancelSelection();
     setCodeMenu(false);
     current = index;
@@ -751,7 +758,7 @@ SOFTWARE.
       button.append(top, make('p', 'note-body', note.text));
       button.addEventListener('click', () => {
         if (mobileQuery.matches) setMobilePane('code');
-        focusNote(noteIndex);
+        focusNote(noteIndex, true);
         if (mobileQuery.matches) {
           el('diff-scroll').focus({preventScroll: true});
           return;
@@ -793,7 +800,8 @@ SOFTWARE.
     }
   }
 
-  function focusNote(index) {
+  function focusNote(index, animate = false) {
+    cancelFocusScroll();
     review?.cancelSelection();
     activeNote = index;
     el('diff-scroll').scrollLeft = 0;
@@ -822,7 +830,7 @@ SOFTWARE.
     el('focus-title').textContent = note.title;
     el('source-link').href = sourceUrl(note.side === 'left' ? data.files[step.file].oldPath : step.file, note.start, note.end, note.side);
     el('mobile-source-link').href = el('source-link').href;
-    requestAnimationFrame(scrollToFocus);
+    requestAnimationFrame(() => scrollToFocus(animate));
   }
 
   function markFocus() {
@@ -834,7 +842,30 @@ SOFTWARE.
     });
   }
 
-  function scrollToFocus() {
+  function cancelFocusScroll() {
+    cancelAnimationFrame(focusScrollFrame);
+    focusScrollFrame = 0;
+  }
+
+  function scrollCodeTo(top, animate) {
+    cancelFocusScroll();
+    const scroll = el('diff-scroll');
+    const target = Math.max(0, Math.min(top, scroll.scrollHeight - scroll.clientHeight));
+    const start = scroll.scrollTop;
+    if (animate !== true || window.matchMedia('(prefers-reduced-motion: reduce)').matches || Math.abs(target - start) < 1) {
+      scroll.scrollTop = target;
+      return;
+    }
+    const began = performance.now();
+    const tick = now => {
+      const progress = Math.min(1, (now - began) / 180);
+      scroll.scrollTop = start + (target - start) * (1 - Math.pow(1 - progress, 3));
+      focusScrollFrame = progress < 1 ? requestAnimationFrame(tick) : 0;
+    };
+    focusScrollFrame = requestAnimationFrame(tick);
+  }
+
+  function scrollToFocus(animate = false) {
     if (el('code-pane').hidden) {
       pendingFocus = true;
       return;
@@ -846,7 +877,7 @@ SOFTWARE.
     // Let even the last source line reach the top of the mobile reading area.
     if (mobileQuery.matches) el('diff-body').closest('table').style.setProperty('--focus-tail', `${Math.max(0, scroll.clientHeight - 56)}px`);
     const top = row.getBoundingClientRect().top - scroll.getBoundingClientRect().top + scroll.scrollTop;
-    scroll.scrollTop = Math.max(0, top - (mobileQuery.matches ? (diffView === 'split' ? 40 : 28) : 72));
+    scrollCodeTo(top - (mobileQuery.matches ? (diffView === 'split' ? 40 : 28) : 72), animate);
     revealSide(row, focusedRange?.side);
   }
 
